@@ -219,16 +219,16 @@ def makeErrorString( error_info ):
 
 
 
-def makeIdentifier():
-  '''
-  - Purpose: creates a timestamp-based identifier for logging, if one isn't passed in to the api.
-             Reason: to easily follow a specific code-thread when multiple sources are logging to same place.
-  - Called by: controller.py
-  '''
-  import datetime, random
-  identifier = u'%s--%s' % ( datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S'), random.randint(1000,9999) )
-  return identifier
-  # end def makeIdentifier()
+# def makeIdentifier():
+#   '''
+#   - Purpose: creates a timestamp-based identifier for logging, if one isn't passed in to the api.
+#              Reason: to easily follow a specific code-thread when multiple sources are logging to same place.
+#   - Called by: controller.py
+#   '''
+#   import datetime, random
+#   identifier = u'%s--%s' % ( datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S'), random.randint(1000,9999) )
+#   return identifier
+#   # end def makeIdentifier()
 
 
 
@@ -450,67 +450,67 @@ def runOverallValidity( validity_result_list, identifier ):
 
 
 
-def updateLog( message, message_importance=u'low', identifier=u'' ):
-  '''
-  - Updates the centralized logging db, or file, if message_importance is high enough.
-    If db logging fails, writes message to a file.
-  '''
+# def updateLog( message, message_importance=u'low', identifier=u'' ):
+#   '''
+#   - Updates the centralized logging db, or file, if message_importance is high enough.
+#     If db logging fails, writes message to a file.
+#   '''
 
-  import urllib, urllib2
-  assert type(message) == unicode, type(message)
+#   import urllib, urllib2
+#   assert type(message) == unicode, type(message)
 
-  update_log_flag = u'init'
-  if message_importance == u'high':
-    update_log_flag = u'yes'
-  elif ( message_importance == u'low' and settings.LOGENTRY_MINIMUM_IMPORTANCE_LEVEL == u'low' ):
-    update_log_flag = u'yes'
-  else:
-    pass  # other conditions can get us here -- but the whole point is not to log everything
+#   update_log_flag = u'init'
+#   if message_importance == u'high':
+#     update_log_flag = u'yes'
+#   elif ( message_importance == u'low' and settings.LOGENTRY_MINIMUM_IMPORTANCE_LEVEL == u'low' ):
+#     update_log_flag = u'yes'
+#   else:
+#     pass  # other conditions can get us here -- but the whole point is not to log everything
 
-  if update_log_flag == u'yes' and settings.LOG_DESTINATION == u'db':
-    try:
-      # try the post
-      values = { u'message':message, u'identifier':identifier, u'key':settings.LOG_KEY }
-      data = urllib.urlencode( values )
-      request = urllib2.Request( settings.LOG_URL, data )
-      response = urllib2.urlopen( request )
-      returned_data = response.read()
-    except Exception, e:
-      updateLogToFile( message, message_importance, identifier )
+#   if update_log_flag == u'yes' and settings.LOG_DESTINATION == u'db':
+#     try:
+#       # try the post
+#       values = { u'message':message, u'identifier':identifier, u'key':settings.LOG_KEY }
+#       data = urllib.urlencode( values )
+#       request = urllib2.Request( settings.LOG_URL, data )
+#       response = urllib2.urlopen( request )
+#       returned_data = response.read()
+#     except Exception, e:
+#       updateLogToFile( message, message_importance, identifier )
 
-  elif update_log_flag == u'yes' and settings.LOG_DESTINATION == u'file':
-      updateLogToFile( message, message_importance, identifier )
+#   elif update_log_flag == u'yes' and settings.LOG_DESTINATION == u'file':
+#       updateLogToFile( message, message_importance, identifier )
 
-  # end def updateLog()
+#   # end def updateLog()
 
 
 
-def updateLogToFile( message, message_importance=u'low', identifier=u'' ):
-  '''
-  - Purpose: database logging is standard; disk-logging occurs on db-logging failure
-             or if 'LOG_DESTINATION' setting is 'file', likely for development convenience.
-  - Called by: utility_code.updateLog()
-  '''
-  assert type(message) == unicode, type(message)
-  assert type(settings.LOG_FILE_PATH) == unicode, type(settings.LOG_FILE_PATH)
-  try:
-    f = open( settings.LOG_FILE_PATH, u'r' )
-  except:
-    f = open( settings.LOG_FILE_PATH, u'w' )  # creates the file if it doesn't already exist
-    f.close()
-    f = open( settings.LOG_FILE_PATH )
-  previous_lines = f.readlines()
-  f.close()
-  entry = u'IDENTIFIER: %s -- MESSAGE: %s\n' % (identifier, message)
-  previous_lines.append( entry.encode(u'utf-8') )
-  new_lines = previous_lines[ -settings.LOG_FILE_MAXIMUM_ENTRIES: ]
-  f = open( settings.LOG_FILE_PATH, u'w' )
-  f.writelines( new_lines )
-  f.close()
-  previous_lines = []
-  new_lines = []
+# def updateLogToFile( message, message_importance=u'low', identifier=u'' ):
+#   '''
+#   - Purpose: database logging is standard; disk-logging occurs on db-logging failure
+#              or if 'LOG_DESTINATION' setting is 'file', likely for development convenience.
+#   - Called by: utility_code.updateLog()
+#   '''
+#   assert type(message) == unicode, type(message)
+#   assert type(settings.LOG_FILE_PATH) == unicode, type(settings.LOG_FILE_PATH)
+#   try:
+#     f = open( settings.LOG_FILE_PATH, u'r' )
+#   except:
+#     f = open( settings.LOG_FILE_PATH, u'w' )  # creates the file if it doesn't already exist
+#     f.close()
+#     f = open( settings.LOG_FILE_PATH )
+#   previous_lines = f.readlines()
+#   f.close()
+#   entry = u'IDENTIFIER: %s -- MESSAGE: %s\n' % (identifier, message)
+#   previous_lines.append( entry.encode(u'utf-8') )
+#   new_lines = previous_lines[ -settings.LOG_FILE_MAXIMUM_ENTRIES: ]
+#   f = open( settings.LOG_FILE_PATH, u'w' )
+#   f.writelines( new_lines )
+#   f.close()
+#   previous_lines = []
+#   new_lines = []
 
-  # end def updateLogToFile()
+#   # end def updateLogToFile()
 
 
 
