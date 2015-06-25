@@ -1,25 +1,29 @@
-# add enclosing directory to path
-import os, sys
-current_script_name = sys.argv[0] # may or may not include path
-directory_path = os.path.dirname( current_script_name )
-full_directory_path = os.path.abspath( directory_path )
-directory_list = full_directory_path.split('/')
-last_element_string = directory_list[-1]
-enclosing_directory = full_directory_path.replace( '/' + last_element_string, '' ) # strip off the slash plus the current directory
-sys.path.append( enclosing_directory )
-
-# gdata imports
-sys.path.append( '%s/gdoc_spreadsheet_extraction/libs' % enclosing_directory )  # needed for next line
-from gdoc_spreadsheet_extraction.libs import gdata  # gdata.__init__.py runs an import on atom
-import gdata.spreadsheet.service
-import gdata.service
-import atom.service
-import gdata.spreadsheet
-
-# normal imports
-import json, pprint
+import json, os, pprint, sys
 import requests
-from gdoc_spreadsheet_extraction import settings
+
+
+# # add enclosing directory to path
+# import os, sys
+# current_script_name = sys.argv[0] # may or may not include path
+# directory_path = os.path.dirname( current_script_name )
+# full_directory_path = os.path.abspath( directory_path )
+# directory_list = full_directory_path.split('/')
+# last_element_string = directory_list[-1]
+# enclosing_directory = full_directory_path.replace( '/' + last_element_string, '' ) # strip off the slash plus the current directory
+# sys.path.append( enclosing_directory )
+
+# # gdata imports
+# sys.path.append( '%s/gdoc_spreadsheet_extraction/libs' % enclosing_directory )  # needed for next line
+# from gdoc_spreadsheet_extraction.libs import gdata  # gdata.__init__.py runs an import on atom
+# import gdata.spreadsheet.service
+# import gdata.service
+# import atom.service
+# import gdata.spreadsheet
+
+# # normal imports
+# import json, pprint
+# import requests
+# from gdoc_spreadsheet_extraction import settings
 
 
 

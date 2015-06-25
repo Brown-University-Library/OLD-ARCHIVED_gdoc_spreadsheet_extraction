@@ -1,46 +1,52 @@
-'''
-- Purpose: script manages the detection of items in a google doc spreadsheet 
-           which are ready to be uploaded to the bdr, and, for each one, 
-           calls the item-api to ingest the item to the bdr.
-- TODO: 1) currently script finds single record ready to be ingested;
-           switch to detecting bunch and looping through each.
-        2) incorporate logic to look for items ready for 'updating' rather than
-           items newly-created.
-'''
+"""
+- Purpose: script manages the detection of items in a google doc spreadsheet
+    which are ready to be uploaded to the bdr, and, for each one,
+    calls the item-api to ingest the item to the bdr.
+- Assumes:
+    - virtual environment set up
+    - site-packages `requirements.pth` file adds `gdoc_spreadsheet_extraction` enclosing-directory to sys path.
+- TODO:
+    1) currently script finds single record ready to be ingested;
+       switch to detecting bunch and looping through each.
+    2) incorporate logic to look for items ready for 'updating' rather than
+       items newly-created.
+"""
 
+import datetime, os, sys
+from gdoc_spreadsheet_extraction import utility_code
 
 
 ## setup
 
-# activate env
-from spreadsheet_extraction_local_settings import settings_local as env_settings
-activate_this = '%s/bin/activate_this.py' % env_settings.ENV_PATH
-execfile( activate_this, dict(__file__=activate_this) )
+# # activate env
+# from spreadsheet_extraction_local_settings import settings_local as env_settings
+# activate_this = '%s/bin/activate_this.py' % env_settings.ENV_PATH
+# execfile( activate_this, dict(__file__=activate_this) )
 
-# add enclosing directory to path
-import os, sys
-current_script_name = sys.argv[0] # may or may not include path
-directory_path = os.path.dirname( current_script_name )
-full_directory_path = os.path.abspath( directory_path )
-directory_list = full_directory_path.split('/')
-last_element_string = directory_list[-1]
-enclosing_directory = full_directory_path.replace( '/' + last_element_string, '' ) # strip off the slash plus the current directory
-sys.path.append( enclosing_directory )
+# # add enclosing directory to path
+# import os, sys
+# current_script_name = sys.argv[0] # may or may not include path
+# directory_path = os.path.dirname( current_script_name )
+# full_directory_path = os.path.abspath( directory_path )
+# directory_list = full_directory_path.split('/')
+# last_element_string = directory_list[-1]
+# enclosing_directory = full_directory_path.replace( '/' + last_element_string, '' ) # strip off the slash plus the current directory
+# sys.path.append( enclosing_directory )
 
-# ok, normal imports
-from gdoc_spreadsheet_extraction import settings
-from gdoc_spreadsheet_extraction import utility_code
-# from gdoc_spreadsheet_extraction.libs import atom  # part of gdata download  # 2011-01-24: don't think i need this
-# from xml.etree import ElementTree  # 2011-01-24: needed?
-import datetime
+# # ok, normal imports
+# from gdoc_spreadsheet_extraction import settings
+# from gdoc_spreadsheet_extraction import utility_code
+# # from gdoc_spreadsheet_extraction.libs import atom  # part of gdata download  # 2011-01-24: don't think i need this
+# # from xml.etree import ElementTree  # 2011-01-24: needed?
+# import datetime
 
-# gdata imports
-sys.path.append( '%s/gdoc_spreadsheet_extraction/libs' % enclosing_directory )  # needed for next line
-from gdoc_spreadsheet_extraction.libs import gdata  # gdata.__init__.py runs an import on atom
-import gdata.spreadsheet.service
-import gdata.service
-import atom.service
-import gdata.spreadsheet
+# # gdata imports
+# sys.path.append( '%s/gdoc_spreadsheet_extraction/libs' % enclosing_directory )  # needed for next line
+# from gdoc_spreadsheet_extraction.libs import gdata  # gdata.__init__.py runs an import on atom
+# import gdata.spreadsheet.service
+# import gdata.service
+# import atom.service
+# import gdata.spreadsheet
 
 
 
@@ -77,7 +83,7 @@ utility_code.updateLog( message=u'C: gdata_target_row_data is: %s' % gdata_targe
 if gdata_target_row_data[ 'status' ] == 'no target row found':
   utility_code.updateLog( message=u'C: no target row found; ending script', identifier=identifier )
   sys.exit()
-  
+
 # convert row fields to a dict-list
 row_data_dict = utility_code.makeRowDataDict( gdata_target_row_data['gdata_target_row'], identifier )
 utility_code.updateLog( message=u'C: row_data_dict is: %s' % row_data_dict, identifier=identifier )
@@ -129,7 +135,7 @@ utility_code.updateLog( message=u'C: overall_validity_data is: %s' % overall_val
 # update spreadsheet if necessary
 if overall_validity_data['status'] == 'FAILURE':
   # prepare replacement-dict
-  row_replacement_data = utility_code.prepareRowReplacementDictOnError( 
+  row_replacement_data = utility_code.prepareRowReplacementDictOnError(
     gdata_row_object=gdata_target_row_data['gdata_target_row'],
     error_message=overall_validity_data['message'],
     identifier=identifier )
@@ -152,12 +158,12 @@ utility_code.updateLog( message=u'C: ingestion_result_data is: %s' % ingestion_r
 
 # update row after ingestion
 if ingestion_result_data['status'] == 'success':
-  row_replacement_data = utility_code.prepareRowReplacementDictOnSuccess( 
+  row_replacement_data = utility_code.prepareRowReplacementDictOnSuccess(
     gdata_row_object=gdata_target_row_data['gdata_target_row'],
     pid=ingestion_result_data['post_json_dict']['pid'],
     identifier=identifier )
 else:
-  row_replacement_data = utility_code.prepareRowReplacementDictOnError( 
+  row_replacement_data = utility_code.prepareRowReplacementDictOnError(
     gdata_row_object=gdata_target_row_data['gdata_target_row'],
     error_message=u'data valid, but problem ingesting item; error logged',
     identifier=identifier )
