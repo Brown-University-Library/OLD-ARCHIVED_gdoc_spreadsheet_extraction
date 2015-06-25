@@ -13,9 +13,11 @@
 """
 
 import datetime, logging, os, random, sys
-from gdoc_spreadsheet_extraction import utility_code
+# from gdoc_spreadsheet_extraction import utility_code
+from gdoc_spreadsheet_extraction.utility_code import SheetGrabber
 
 
+## settings
 LOG_PATH = os.environ['ASSMNT__LOG_PATH']
 LOG_LEVEL = os.environ['ASSMNT__LOG_LEVEL']  # 'DEBUG' or 'INFO'
 
@@ -26,31 +28,18 @@ logging.basicConfig(
     filename=LOG_PATH, level=log_level[LOG_LEVEL],
     format=u'[%(asctime)s] %(levelname)s [%(module)s-%(funcName)s()::%(lineno)d] %(message)s', datefmt=u'%d/%b/%Y %H:%M:%S' )
 logger = logging.getLogger(__name__)
+log_identifier = random.randint( 1111, 9999 )  # helps to track log flow
+logger.info( u'%s -- log_identifier set' % log_identifier )
+
+
+## instances
+sheet_grabber = SheetGrabber( log_identifier )
 
 
 ## work
 
-# make log identifier
-identifier = random.randint( 1111, 9999 )  # helps to track log flow
-logger.info( u'%s -- identifier set' % identifier )
-# utility_code.updateLog( message=u'C: identifier set', identifier=identifier )
-
-# get the spreadsheet name
-utility_code.updateLog( message=u'C: sys.argv is: %s' % sys.argv, identifier=identifier )
-if len( sys.argv ) < 2:
-  sys.exit('Usage: ./controller.py spreadsheet_name')
-else:
-  spreadsheet_name = sys.argv[1]
-  utility_code.updateLog( message=u'C: spreadsheet_name is: %s' % spreadsheet_name, identifier=identifier )
-
-# get a gdata_client
-gdata_client_result = utility_code.getGdataClient( spreadsheet_name, identifier )
-utility_code.updateLog( message=u'C: gdata_client is: %s' % gdata_client_result, identifier=identifier )
-
-# access spreadsheet
-gdata_client = gdata_client_result['gdata_client_object']
-spreadsheet_data = utility_code.getSpreadsheetData( gdata_client, spreadsheet_name, identifier )
-utility_code.updateLog( message=u'C: spreadsheet_data is: %s' % spreadsheet_data, identifier=identifier )
+## get spreadsheet object
+spreadsheet = sheet_grabber.get_spreadsheet()
 
 # get spreadsheet rows
 gdata_row_feed = gdata_client.GetListFeed( spreadsheet_data['spreadsheet_key'] )

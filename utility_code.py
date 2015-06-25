@@ -1,33 +1,37 @@
-import json, os, pprint, sys
+import json, logging, os, pprint, sys
+import gspread
 import requests
+from oauth2client.client import SignedJwtAssertionCredentials
 
 
-# # add enclosing directory to path
-# import os, sys
-# current_script_name = sys.argv[0] # may or may not include path
-# directory_path = os.path.dirname( current_script_name )
-# full_directory_path = os.path.abspath( directory_path )
-# directory_list = full_directory_path.split('/')
-# last_element_string = directory_list[-1]
-# enclosing_directory = full_directory_path.replace( '/' + last_element_string, '' ) # strip off the slash plus the current directory
-# sys.path.append( enclosing_directory )
-
-# # gdata imports
-# sys.path.append( '%s/gdoc_spreadsheet_extraction/libs' % enclosing_directory )  # needed for next line
-# from gdoc_spreadsheet_extraction.libs import gdata  # gdata.__init__.py runs an import on atom
-# import gdata.spreadsheet.service
-# import gdata.service
-# import atom.service
-# import gdata.spreadsheet
-
-# # normal imports
-# import json, pprint
-# import requests
-# from gdoc_spreadsheet_extraction import settings
+log = logging.getLogger(__name__)
 
 
+class SheetGrabber( object ):
+    """ Uses gspread to access spreadsheet. """
 
+    def __init__( self,log_identifier ):
+        self.CREDENTIALS_FILEPATH = os.environ['ASSMNT__CREDENTIALS_JSON_PATH']  # file produced by <http://gspread.readthedocs.org/en/latest/oauth2.html>
+        self.SPREADSHEET_KEY = os.environ['ASSMNT__SPREADSHEET_KEY']
+        self.scope = ['https://spreadsheets.google.com/feeds']
+        self.log_identifier = log_identifier
 
+    def get_spreadsheet( self ):
+        """ Accesses googledoc spreadsheet. """
+        try:
+            json_key = json.load( open(self.CREDENTIALS_FILEPATH) )
+            credentials = SignedJwtAssertionCredentials(
+                json_key['client_email'], json_key['private_key'], self.scope )
+            gc = gspread.authorize(credentials)
+            spreadsheet = gc.open_by_key( self.SPREADSHEET_KEY )
+            log.debug( u'%s -- spreadsheet grabbed, `%s`' % (self.log_identifier, spreadsheet) )
+            return spreadsheet
+        except Exception as e:
+            message = u'Problem grabbing spreadsheet; exception, `%s`' % unicode(repr(e))
+            log.error( message )
+            raise Exception( message )
+
+    # end class SheetGrabber
 
 
 def findRowToProcess( gdata_row_feed, identifier ):
@@ -216,19 +220,6 @@ def makeErrorString( error_info ):
   '''
   return u'error-type - %s; error-message - %s; line-number - %s' % ( sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2].tb_lineno, )
   # end def makeErrorString()
-
-
-
-# def makeIdentifier():
-#   '''
-#   - Purpose: creates a timestamp-based identifier for logging, if one isn't passed in to the api.
-#              Reason: to easily follow a specific code-thread when multiple sources are logging to same place.
-#   - Called by: controller.py
-#   '''
-#   import datetime, random
-#   identifier = u'%s--%s' % ( datetime.datetime.now().strftime('%Y-%m-%d-%H:%M:%S'), random.randint(1000,9999) )
-#   return identifier
-#   # end def makeIdentifier()
 
 
 
@@ -447,71 +438,6 @@ def runOverallValidity( validity_result_list, identifier ):
   # return
   return return_dict
   # end def runOverallValidity()
-
-
-
-# def updateLog( message, message_importance=u'low', identifier=u'' ):
-#   '''
-#   - Updates the centralized logging db, or file, if message_importance is high enough.
-#     If db logging fails, writes message to a file.
-#   '''
-
-#   import urllib, urllib2
-#   assert type(message) == unicode, type(message)
-
-#   update_log_flag = u'init'
-#   if message_importance == u'high':
-#     update_log_flag = u'yes'
-#   elif ( message_importance == u'low' and settings.LOGENTRY_MINIMUM_IMPORTANCE_LEVEL == u'low' ):
-#     update_log_flag = u'yes'
-#   else:
-#     pass  # other conditions can get us here -- but the whole point is not to log everything
-
-#   if update_log_flag == u'yes' and settings.LOG_DESTINATION == u'db':
-#     try:
-#       # try the post
-#       values = { u'message':message, u'identifier':identifier, u'key':settings.LOG_KEY }
-#       data = urllib.urlencode( values )
-#       request = urllib2.Request( settings.LOG_URL, data )
-#       response = urllib2.urlopen( request )
-#       returned_data = response.read()
-#     except Exception, e:
-#       updateLogToFile( message, message_importance, identifier )
-
-#   elif update_log_flag == u'yes' and settings.LOG_DESTINATION == u'file':
-#       updateLogToFile( message, message_importance, identifier )
-
-#   # end def updateLog()
-
-
-
-# def updateLogToFile( message, message_importance=u'low', identifier=u'' ):
-#   '''
-#   - Purpose: database logging is standard; disk-logging occurs on db-logging failure
-#              or if 'LOG_DESTINATION' setting is 'file', likely for development convenience.
-#   - Called by: utility_code.updateLog()
-#   '''
-#   assert type(message) == unicode, type(message)
-#   assert type(settings.LOG_FILE_PATH) == unicode, type(settings.LOG_FILE_PATH)
-#   try:
-#     f = open( settings.LOG_FILE_PATH, u'r' )
-#   except:
-#     f = open( settings.LOG_FILE_PATH, u'w' )  # creates the file if it doesn't already exist
-#     f.close()
-#     f = open( settings.LOG_FILE_PATH )
-#   previous_lines = f.readlines()
-#   f.close()
-#   entry = u'IDENTIFIER: %s -- MESSAGE: %s\n' % (identifier, message)
-#   previous_lines.append( entry.encode(u'utf-8') )
-#   new_lines = previous_lines[ -settings.LOG_FILE_MAXIMUM_ENTRIES: ]
-#   f = open( settings.LOG_FILE_PATH, u'w' )
-#   f.writelines( new_lines )
-#   f.close()
-#   previous_lines = []
-#   new_lines = []
-
-#   # end def updateLogToFile()
-
 
 
 def updateSpreadsheet( gdata_client, gdata_row_object, replacement_dict, identifier ):
