@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import json, logging, os, pprint, sys
+import datetime, json, logging, os, pprint, sys
 import gspread
 import requests
 from oauth2client.client import SignedJwtAssertionCredentials
@@ -84,6 +84,51 @@ class Validator( object ):
 
           # end validateBy()
 
+    def validateCreateDate( self, cell_data ):
+          '''
+          - Purpose: a) validate 'create_date' data;
+                     b) create a postable string for the item-api by converting 2/15/2007 to 2007-02-15
+          - Called by: controller.py
+          '''
+          try:
+            # optional field
+            if len( cell_data ) > 0:
+              date_parts = cell_data.split( '/' )
+              log.debug( u'%s -- date_parts, `%s`' % (self.log_identifier, date_parts) )
+              datetime_object = datetime.datetime( year=int(date_parts[2]), month=int(date_parts[0]), day=int(date_parts[1]) )
+              new_date_string = datetime_object.strftime('%Y-%m-%d')
+              return_dict = { 'status': 'valid', 'normalized_cell_data': new_date_string, 'parameter_label': 'create_date' }
+            else:
+              return_dict = { 'status': 'valid-empty', 'normalized_cell_data': '', 'parameter_label': 'create_date' }
+            log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
+            return return_dict
+          except Exception, e:
+            log.error( u'%s -- exception, `%s`' % (self.log_identifier, unicode(repr(e))) )
+            return { 'status': 'FAILURE', 'message': 'problem with "create_date" entry' }
+
+          # end validateCreateDate()
+
+    def validateDescription( self, cell_data ):
+          '''
+          - Purpose: a) validate 'description' data; b) create a postable string for the item-api
+          - Called by: controller.py
+          - TODO: add test for unicode issues
+          '''
+          try:
+            # optional field
+            if len( cell_data ) > 0:
+              return_dict = { 'status': 'valid', 'normalized_cell_data': cell_data, 'parameter_label': 'description' }
+            else:
+              return_dict = { 'status': 'valid-empty', 'normalized_cell_data': '', 'parameter_label': 'description' }
+            log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
+            return return_dict
+          except Exception, e:
+            log.error( u'%s -- exception, `%s`' % (self.log_identifier, unicode(repr(e))) )
+            return_dict =  { 'status': 'FAILURE', 'message': 'problem with "description" entry' }
+            return return_dict
+
+        # end validateDescription()
+
     # end class Validator
 
 
@@ -154,123 +199,6 @@ class SheetGrabber( object ):
         return working_dct
 
     # end class SheetGrabber
-
-
-# def findRowToProcess( gdata_row_feed, identifier ):
-#   '''
-#   - Purpose: to find a row that needs processing.
-#   - Called by: controller.py
-#   '''
-#   updateLog( message=u'starting findRowToProcess(); type(gdata_row_feed) is: %s' % type(gdata_row_feed), identifier=identifier )
-#   updateLog( message=u'gdata_row_feed.__dict__ is: %s' % gdata_row_feed.__dict__, identifier=identifier )
-#   updateLog( message=u'gdata_row_feed.entry is: %s' % gdata_row_feed.entry, identifier=identifier )
-#   updateLog( message=u'gdata_row_feed.entry[3] is: %s' % gdata_row_feed.entry[3], identifier=identifier )
-#   updateLog( message=u'gdata_row_feed.entry[3].__dict__ is: %s' % gdata_row_feed.entry[3].__dict__, identifier=identifier )
-#   updateLog( message=u'gdata_row_feed.entry[3].custom is: %s' % gdata_row_feed.entry[3].custom, identifier=identifier )
-#   updateLog( message=u'gdata_row_feed.entry[3].custom["title"] is: %s' % gdata_row_feed.entry[3].custom["title"], identifier=identifier )
-#   updateLog( message=u'gdata_row_feed.entry[3].custom["title"].__dict__ is: %s' % gdata_row_feed.entry[3].custom["title"].__dict__, identifier=identifier )
-#   updateLog( message=u'gdata_row_feed.entry[3].custom["ready"].text is: %s' % gdata_row_feed.entry[3].custom["ready"].text, identifier=identifier )
-
-#   gdata_row_list = gdata_row_feed.entry
-#   gdata_target_row = 'init'
-#   for gdata_row in gdata_row_list:
-#     if gdata_row.custom['ready'].text == 'Y':
-#       gdata_target_row = gdata_row
-#       updateLog( message=u'gdata_target_row found; it is: %s, and gdata_target_row.custom["ready"] is: %s' % (gdata_target_row, gdata_target_row.custom["ready"]), identifier=identifier )
-#       break
-
-#   if gdata_target_row == 'init':
-#     return { 'status': 'no target row found' }
-#   else:
-#     return { 'status': 'target row found', 'gdata_target_row': gdata_target_row }
-
-#   # end def findRowToProcess()
-
-
-
-# def getGdataClient( spreadsheet_name, identifier ):
-#   '''
-#   - Purpose: gets a logged-in gdata client object for a given spreadsheet.
-#              Assumes a settings dict entry containing username/password info.
-#   - Called by: controller.py
-#   '''
-#   try:
-#     dict_key = '%s_dict' % spreadsheet_name
-#     updateLog( message=u'dict_key is: %s' % dict_key, identifier=identifier )
-#     if not dict_key in settings.SPREADSHEET_ACCESS_DICT:
-#       return { 'status': 'FAILURE', 'message': 'no such spreadsheet' }
-#     gd_client = gdata.spreadsheet.service.SpreadsheetsService()
-#     updateLog( message=u'gd_client is: %s' % gd_client, identifier=identifier )
-#     gd_client.email = settings.SPREADSHEET_ACCESS_DICT[dict_key]['google_docs_email_address']
-#     gd_client.password = settings.SPREADSHEET_ACCESS_DICT[dict_key]['google_docs_password']
-#     gd_client.source = 'python_programmatic_access_test'
-#     gd_client.ProgrammaticLogin()
-#     return { 'status': 'success', 'gdata_client_object': gd_client }
-#   except Exception:
-#     updateLog( message=u'- in getGdataClient(); exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
-#     return { 'status': 'failure', 'message': 'see log' }
-#   # end def getGdataClient()
-
-
-
-# def getSpreadsheetData( gdata_client, spreadsheet_name, identifier ):
-#   '''
-#   - Purpose: takes submitted credentials and gets necessary spreadsheet data.
-#   - Called by: controller.py
-#   '''
-
-#   # get spreadsheet dict
-#   try:
-
-#     # determine spreadsheet to process
-#     gd_spreadsheet_feed = gdata_client.GetSpreadsheetsFeed()
-#     updateLog( message=u'gd_spreadsheet_feed is: %s' % gd_spreadsheet_feed, identifier=identifier )
-#     updateLog( message=u'type(gd_spreadsheet_feed) is: %s' % type(gd_spreadsheet_feed), identifier=identifier )
-#     updateLog( message=u'gd_spreadsheet_feed.entry is: %s' % gd_spreadsheet_feed.entry, identifier=identifier )
-#     updateLog( message=u'gd_spreadsheet_feed.entry[0] is: %s' % gd_spreadsheet_feed.entry[0], identifier=identifier )
-#     updateLog( message=u'gd_spreadsheet_feed.entry[0].__dict__ is: %s' % gd_spreadsheet_feed.entry[0].__dict__, identifier=identifier )
-#     updateLog( message=u'gd_spreadsheet_feed.entry[0].title is: %s' % gd_spreadsheet_feed.entry[0].title, identifier=identifier )
-#     updateLog( message=u'gd_spreadsheet_feed.entry[0].title.__dict__ is: %s' % gd_spreadsheet_feed.entry[0].title.__dict__, identifier=identifier )
-#     updateLog( message=u'gd_spreadsheet_feed.entry[0].title.text is: %s' % gd_spreadsheet_feed.entry[0].title.text, identifier=identifier )
-#     updateLog( message=u'gd_spreadsheet_feed.entry[0].link is: %s' % gd_spreadsheet_feed.entry[0].link, identifier=identifier )
-#     updateLog( message=u'gd_spreadsheet_feed.entry[0].link[0] is: %s' % gd_spreadsheet_feed.entry[0].link[0], identifier=identifier )
-#     updateLog( message=u'gd_spreadsheet_feed.entry[0].link[0].__dict__ is: %s' % gd_spreadsheet_feed.entry[0].link[0].__dict__, identifier=identifier )
-#     gd_spreadsheet_list = gd_spreadsheet_feed.entry
-#     our_gd_spreadsheet = 'init'
-#     for entry in gd_spreadsheet_list:  # entry is an object of xml representing a single spreadsheet
-#       if entry.title.text == spreadsheet_name:
-#         our_gd_spreadsheet = entry
-#         updateLog( message=u'spreadsheet found', identifier=identifier )
-#     if our_gd_spreadsheet == 'init':
-#       message = 'no spreadsheet match found'
-#       updateLog( message=message, identifier=identifier )
-#       return { 'status': 'FAILURE', 'message': message }
-
-#     # get spreadsheet key
-#     gd_spreadsheet_links_list = our_gd_spreadsheet.link
-#     spreadsheet_key = 'init'
-#     for entry in gd_spreadsheet_links_list:
-#       if 'key' in entry.href:
-#         spreadsheet_key = entry.href.split( '=' )[1]  #grabbing the data after '='
-#         updateLog( message=u'spreadsheet key is: %s' % spreadsheet_key, identifier=identifier )
-#         break
-#     if spreadsheet_key == 'init':
-#       message = u'no spreadsheet key found'
-#       updateLog( message=message, identifier=identifier )
-#       return { 'status': 'FAILURE', 'message': message }
-
-#     return {
-#       'status': 'success',
-#       'spreadsheet_key': spreadsheet_key,
-#       'gdata_spreadsheet': our_gd_spreadsheet
-#     }
-
-#   except Exception, e:
-#     updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
-#     return { 'status': 'FAILURE', 'message': 'error logged' }
-
-#   # end def getSpreadsheetData()
-
 
 
 def ingestItem( validity_result_list, identifier ):
@@ -583,39 +511,6 @@ def updateSpreadsheet( gdata_client, gdata_row_object, replacement_dict, identif
   # end def updateSpreadsheet()
 
 
-
-
-
-
-
-
-def validateCreateDate( cell_data, identifier ):
-  '''
-  - Purpose: a) validate 'create_date' data;
-             b) create a postable string for the item-api by converting 2/15/2007 to 2007-02-15
-  - Called by: controller.py
-  '''
-  import datetime
-  try:
-    # optional field
-    if len( cell_data ) > 0:
-      date_parts = cell_data.split( '/' )
-      updateLog( message=u'validateCreateDate() date_parts is: %s' % date_parts, identifier=identifier )
-      datetime_object = datetime.datetime( year=int(date_parts[2]), month=int(date_parts[0]), day=int(date_parts[1]) )
-      new_date_string = datetime_object.strftime('%Y-%m-%d')
-      return_dict = { 'status': 'valid', 'normalized_cell_data': new_date_string, 'parameter_label': 'create_date' }
-    else:
-      return_dict = { 'status': 'valid-empty', 'normalized_cell_data': '', 'parameter_label': 'create_date' }
-    updateLog( message=u'validateCreateDate() return_dict is: %s' % return_dict, identifier=identifier )
-    return return_dict
-  except Exception, e:
-    updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
-    return { 'status': 'FAILURE', 'message': 'problem with "create_date" entry' }
-
-  # end validateCreateDate()
-
-
-
 def validateDeletionDict( deletion_dict, log_id ):
   '''
   - Purpose: sanity check on title, filename, and deletion permissions.
@@ -673,31 +568,6 @@ def validateDeletionDict( deletion_dict, log_id ):
     print u'validateDeletionDict() exception -'; pprint.pprint( error_dict )
     updateLog( message=u'- in uc.validateDeletionDict(); exception detail is: %s' % error_dict, message_importance='high', identifier=log_id )
     return { u'status': u'FAILURE', u'data': error_dict }
-
-
-
-def validateDescription( cell_data, identifier ):
-  '''
-  - Purpose: a) validate 'description' data; b) create a postable string for the item-api
-  - Called by: controller.py
-  - TODO: add test for unicode issues
-  '''
-  try:
-    # optional field
-    if len( cell_data ) > 0:
-      return_dict = { 'status': 'valid', 'normalized_cell_data': cell_data, 'parameter_label': 'description' }
-    else:
-      return_dict = { 'status': 'valid-empty', 'normalized_cell_data': '', 'parameter_label': 'description' }
-    updateLog( message=u'validateDescription() return_dict is: %s' % return_dict, identifier=identifier )
-    return return_dict
-  except Exception, e:
-    return_dict =  { 'status': 'FAILURE', 'message': 'problem with "description" entry' }
-    updateLog( message=u'validateDescription() return_dict is: %s' % return_dict, identifier=identifier )
-    updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
-    return return_dict
-
-  # end validateDescription()
-
 
 
 def validateFilePath( cell_data, default_filepath_directory, identifier ):

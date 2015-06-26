@@ -62,6 +62,14 @@ vresult_additional_rights = validator.validateAdditionalRights( row_data_dict['a
 # validate -- by
 vresult_by = validator.validateBy( row_data_dict['by'] )
 
+# validate -- create_date
+vresult_create_date = validator.validateCreateDate( row_data_dict['create_date'] )
+
+# validate -- description
+vresult_description = validator.validateDescription( row_data_dict['description'] )
+
+
+
 
 # # find a row that needs processing
 # gdata_target_row_data = utility_code.findRowToProcess( gdata_row_feed, identifier )
@@ -82,13 +90,13 @@ vresult_by = validator.validateBy( row_data_dict['by'] )
 # vresult_by = utility_code.validateBy( row_data_dict['by'], identifier )
 # utility_code.updateLog( message=u'C: vresult_by is: %s' % vresult_by, identifier=identifier )
 
-# validate -- create_date
-vresult_create_date = utility_code.validateCreateDate( row_data_dict['create_date'], identifier )
-utility_code.updateLog( message=u'C: vresult_create_date is: %s' % vresult_create_date, identifier=identifier )
+# # validate -- create_date
+# vresult_create_date = utility_code.validateCreateDate( row_data_dict['create_date'], identifier )
+# utility_code.updateLog( message=u'C: vresult_create_date is: %s' % vresult_create_date, identifier=identifier )
 
-# validate -- description
-vresult_description = utility_code.validateDescription( row_data_dict['description'], identifier )
-utility_code.updateLog( message=u'C: vresult_description is: %s' % vresult_description, identifier=identifier )
+# # validate -- description
+# vresult_description = utility_code.validateDescription( row_data_dict['description'], identifier )
+# utility_code.updateLog( message=u'C: vresult_description is: %s' % vresult_description, identifier=identifier )
 
 # validate -- file_path
 default_filepath_directory = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['default_filepath_directory']
