@@ -56,6 +56,8 @@ if ready_row == None:
 ## prepare data-dct for api
 row_data_dict = sheet_grabber.prepare_working_dct()
 
+## validate
+
 # validate -- additional_rights
 vresult_additional_rights = validator.validateAdditionalRights( row_data_dict['additional_rights'] )
 
@@ -77,6 +79,18 @@ vresult_folders = validator.validateFolders( row_data_dict['folders'] )
 # validate -- keywords
 vresult_keywords = validator.validateKeywords( row_data_dict['keywords'] )
 
+# validate -- title
+vresult_title = validator.validateTitle( row_data_dict['title'] )
+
+# check overall validity
+validity_result_list = [
+  vresult_additional_rights, vresult_by,
+  vresult_create_date, vresult_description,
+  vresult_file_path, vresult_folders,
+  vresult_keywords, vresult_title
+  ]
+overall_validity_data = validator.runOverallValidity( validity_result_list )
+logger.info( u'%s -- overall_validity_data, `%s`' % (log_identifier, overall_validity_data) )
 
 
 
@@ -122,19 +136,19 @@ vresult_keywords = validator.validateKeywords( row_data_dict['keywords'] )
 # vresult_keywords = utility_code.validateKeywords( row_data_dict['keywords'], identifier )
 # utility_code.updateLog( message=u'C: vresult_keywords is: %s' % vresult_keywords, identifier=identifier )
 
-# validate -- title
-vresult_title = utility_code.validateTitle( row_data_dict['title'], identifier )
-utility_code.updateLog( message=u'C: vresult_title is: %s' % vresult_title, identifier=identifier )
+# # validate -- title
+# vresult_title = utility_code.validateTitle( row_data_dict['title'], identifier )
+# utility_code.updateLog( message=u'C: vresult_title is: %s' % vresult_title, identifier=identifier )
 
-# check overall validity
-validity_result_list = [
-  vresult_additional_rights, vresult_by,
-  vresult_create_date, vresult_description,
-  vresult_file_path, vresult_folders,
-  vresult_keywords, vresult_title
-  ]
-overall_validity_data = utility_code.runOverallValidity( validity_result_list, identifier )
-utility_code.updateLog( message=u'C: overall_validity_data is: %s' % overall_validity_data, identifier=identifier )
+# # check overall validity
+# validity_result_list = [
+#   vresult_additional_rights, vresult_by,
+#   vresult_create_date, vresult_description,
+#   vresult_file_path, vresult_folders,
+#   vresult_keywords, vresult_title
+#   ]
+# overall_validity_data = utility_code.runOverallValidity( validity_result_list, identifier )
+# utility_code.updateLog( message=u'C: overall_validity_data is: %s' % overall_validity_data, identifier=identifier )
 
 
 1/0

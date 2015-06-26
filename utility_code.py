@@ -275,6 +275,51 @@ class Validator( object ):
             return return_dict
           # end validateKeywords()
 
+    def validateTitle( self, cell_data ):
+          '''
+          - Purpose: a) validate 'description' data; b) create a postable string for the item-api
+          - Called by: controller.py
+          - TODO: add test for unicode issues
+          '''
+          try:
+            if len( cell_data ) == 0:
+              return_dict = { 'status': 'FAILURE', 'message': '"title" required' }
+            else:
+              return_dict = { 'status': 'valid', 'normalized_cell_data': cell_data, 'parameter_label': 'title' }
+            log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
+            return return_dict
+          except Exception, e:
+            log.error( u'%s -- exception, `%s`' % (self.log_identifier, unicode(repr(e))) )
+            return_dict =  { 'status': 'FAILURE', 'message': 'problem with "title" entry' }
+            return return_dict
+
+          # end def validateTitle()
+
+    def runOverallValidity( self, validity_result_list ):
+          '''
+          - Purpose: to assess the results of all of the individual validity tests.
+          - Called by: controller.py
+          '''
+          # run through each validity-check
+          log.debug( u'%s -- validity_result_list, `%s`' % (self.log_identifier, pprint.pformat(validity_result_list)) )
+          problem_message_list = []
+          for entry in validity_result_list:
+            if not 'valid' in entry['status']:
+              problem_message_list.append( entry['message'] )
+          log.debug( u'%s -- problem_message_list, `%s`' % (self.log_identifier, problem_message_list) )
+          # build problem-list if necessary
+          if len( problem_message_list ) > 0:
+            return_dict = {
+              'status': 'FAILURE',
+              'message': 'File not ingested; errors: %s' % ', '.join(problem_message_list)
+              }
+          else:
+            return_dict = { 'status': 'valid' }
+          log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
+          # return
+          return return_dict
+          # end def runOverallValidity()
+
     # end class Validator
 
 
@@ -609,33 +654,6 @@ def prepareRowReplacementDictOnDeletionSuccess( gdata_row_object, pid, identifie
   # end def prepareRowReplacementDictOnDeletionSuccess()
 
 
-
-def runOverallValidity( validity_result_list, identifier ):
-  '''
-  - Purpose: to assess the results of all of the individual validity tests.
-  - Called by: controller.py
-  '''
-  # run through each validity-check
-  updateLog( message=u'runOverallValidity(); validity_result_list is: %s' % validity_result_list, identifier=identifier )
-  problem_message_list = []
-  for entry in validity_result_list:
-    if not 'valid' in entry['status']:
-      problem_message_list.append( entry['message'] )
-  updateLog( message=u'runOverallValidity(); problem_message_list is: %s' % problem_message_list, identifier=identifier )
-  # build problem-list if necessary
-  if len( problem_message_list ) > 0:
-    return_dict = {
-      'status': 'FAILURE',
-      'message': 'File not ingested; errors: %s' % ', '.join(problem_message_list)
-      }
-  else:
-    return_dict = { 'status': 'valid' }
-  updateLog( message=u'runOverallValidity(); return_dict is: %s' % return_dict, identifier=identifier )
-  # return
-  return return_dict
-  # end def runOverallValidity()
-
-
 def updateSpreadsheet( gdata_client, gdata_row_object, replacement_dict, identifier ):
   '''
   - Purpose: updates the spreadsheet row with prepared info.
@@ -714,26 +732,3 @@ def validateDeletionDict( deletion_dict, log_id ):
     print u'validateDeletionDict() exception -'; pprint.pprint( error_dict )
     updateLog( message=u'- in uc.validateDeletionDict(); exception detail is: %s' % error_dict, message_importance='high', identifier=log_id )
     return { u'status': u'FAILURE', u'data': error_dict }
-
-
-def validateTitle( cell_data, identifier ):
-  '''
-  - Purpose: a) validate 'description' data; b) create a postable string for the item-api
-  - Called by: controller.py
-  - TODO: add test for unicode issues
-  '''
-  try:
-    if len( cell_data ) == 0:
-      return_dict = { 'status': 'FAILURE', 'message': '"title" required' }
-    else:
-      return_dict = { 'status': 'valid', 'normalized_cell_data': cell_data, 'parameter_label': 'title' }
-    updateLog( message=u'validateTitle() return_dict is: %s' % return_dict, identifier=identifier )
-    return return_dict
-  except Exception, e:
-    return_dict =  { 'status': 'FAILURE', 'message': 'problem with "title" entry' }
-    updateLog( message=u'validateTitle() return_dict is: %s' % return_dict, identifier=identifier )
-    updateLog( message=u'validateTitle(); exception detail is: %s' % makeErrorString(sys.exc_info()), identifier=identifier, message_importance='high' )
-    return return_dict
-
-  # end def validateTitle()
-
