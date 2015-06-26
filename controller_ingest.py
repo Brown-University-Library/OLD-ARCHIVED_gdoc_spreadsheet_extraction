@@ -15,7 +15,7 @@
 """
 
 import datetime, logging, os, random, sys
-# from gdoc_spreadsheet_extraction import utility_code
+from gdoc_spreadsheet_extraction import utility_code
 from gdoc_spreadsheet_extraction.utility_code import SheetGrabber
 
 
@@ -46,18 +46,24 @@ spreadsheet = sheet_grabber.get_spreadsheet()
 ## get worksheet
 worksheet = sheet_grabber.get_worksheet()
 
+## find ready row
+ready_row = sheet_grabber.find_ready_row()
+if ready_row == None:
+    logger.info( u'%s -- no target row found; ending script' % log_identifier )
+    sys.exit()
+
+## convert row fields expected dct
 
 
-# get spreadsheet rows
-gdata_row_feed = gdata_client.GetListFeed( spreadsheet_data['spreadsheet_key'] )
-utility_code.updateLog( message=u'C: gdata_row_feed is: %s' % repr(gdata_row_feed).decode(u'utf-8', u'replace'), identifier=identifier )
+1/0
 
-# find a row that needs processing
-gdata_target_row_data = utility_code.findRowToProcess( gdata_row_feed, identifier )
-utility_code.updateLog( message=u'C: gdata_target_row_data is: %s' % gdata_target_row_data, identifier=identifier )
-if gdata_target_row_data[ 'status' ] == 'no target row found':
-  utility_code.updateLog( message=u'C: no target row found; ending script', identifier=identifier )
-  sys.exit()
+
+# # find a row that needs processing
+# gdata_target_row_data = utility_code.findRowToProcess( gdata_row_feed, identifier )
+# utility_code.updateLog( message=u'C: gdata_target_row_data is: %s' % gdata_target_row_data, identifier=identifier )
+# if gdata_target_row_data[ 'status' ] == 'no target row found':
+#   utility_code.updateLog( message=u'C: no target row found; ending script', identifier=identifier )
+#   sys.exit()
 
 # convert row fields to a dict-list
 row_data_dict = utility_code.makeRowDataDict( gdata_target_row_data['gdata_target_row'], identifier )
