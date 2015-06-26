@@ -15,103 +15,74 @@ class Validator( object ):
     def __init__( self, log_identifier ):
         self.log_identifier = log_identifier
 
-    def validateAdditionalRights( self, additional_rights_dct ):
-        """ Validates additional rights data, and creates a postable string for the item-api.
-            Called by: controller.py """
-        ( identity_list, delete_identities, update_identities, view_identities ) = self._setup_rights_validator( additional_rights_dct )
-        identity_list = self._make_rights_identity_list( identity_list, delete_identities, update_identities, view_identities )
-        return_string = self._make_rights_return_string( identity_list, delete_identities, update_identities, view_identities )
+    def validateAdditionalRights( self, cell_data ):
+        try:
+            # make identity list
+            identity_list = []
+            delete_identities = cell_data['delete'].split( ' | ' )
+            update_identities = cell_data['update'].split( ' | ' )
+            view_identities = cell_data['view'].split( ' | ' )
+            merged_identities = delete_identities[:]
+            merged_identities.extend( update_identities )
+            merged_identities.extend( view_identities )
+            merged_identities.sort()
+            for identity in merged_identities:
+              if not identity in identity_list:
+                identity_list.append( identity )
+            identity_list.sort( key=str.lower )  # sort helps with testing and logging
+            log.debug( u'%s -- identity_list, `%s`' % (self.log_identifier, identity_list) )
 
-    def _setup_rights_validator( self, additional_rights_dct ):
-        """ Initializes vars.
-            Called by: validateAdditionalRights() """
-        identity_list = []
-        delete_identities = additional_rights_dct['delete'].split(' | ')
-        update_identities = additional_rights_dct['delete'].split(' | ')
-        view_identities = additional_rights_dct['delete'].split(' | ')
-        identity_var = ( identity_list, delete_identities, update_identities, view_identities )
-        log.debug( u'%s -- identity_var, `%s`' % (self.log_identifier, pprint.pformat(identity_var)) )
-        return identity_var
+            # make string
+            return_string = ''
+            for identity in identity_list:
+              segment = '%s#' % identity
+              if identity in view_identities:
+                segment = segment + 'discover,display'
+              if identity in update_identities:
+                segment = segment + ',modify'
+              if identity in delete_identities:
+                segment = segment + ',delete'
+              log.debug( u'%s -- segment before comma-check, `%s`' % (self.log_identifier, segment) )
+              # remove possible preceding comma
+              segment = segment.replace( '#,', '#' )
+              log.debug( u'%s -- segment, `%s`' % (self.log_identifier, segment) )
+              return_string = '%s+%s' % ( return_string, segment )
 
-    def _make_rights_identity_list( self, identity_list, delete_identities, update_identities, view_identities ):
-        """ Returns identity list.
-            Called by validateAdditionalRights() """
-        merged_identities = delete_identities[:]
-        merged_identities.extend( update_identities )
-        merged_identities.extend( view_identities )
-        merged_identities.sort()
-        for identity in merged_identities:
-            if not identity in identity_list:
-                  identity_list.append( identity )
-        identity_list.sort( key=str.lower )  # helps with testing and logging
-        log.debug( u'%s -- identity_list, `%s`' % (self.log_identifier, pprint.pformat(identity_list)) )
-        return identity_list
+            # return
+            return_string = return_string[1:]  # remove initial '+'
+            return_dict = { 'status': 'valid', 'normalized_cell_data': return_string, 'parameter_label': 'additional_rights' }
+            log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
+            return return_dict
 
-    def _make_rights_return_string( self, identity_list, delete_identities, update_identities, view_identities ):
-        """ Prepares additional-rights string postable to api.
-            Called by validateAdditionalRights() """
-        return_string = ''
-        for identity in identity_list:
-            segment = '%s#' % identity
-            if identity in view_identities:
-                segment += 'discover,display'
-            if identity in update_identities:
-                segment += ',modify'
-            if identity in delete_identities:
-                segment += ',delete'
-            log.debug( u'%s -- segment before comma-check, `%s`' % (self.log_identifier, segment) )
-            segment = segment.replace( '#,', '#' )  # remove possible preceding comma
-            return_string = '%s+%s' % ( return_string, segment )
-            log.debug( u'%s -- partial return_string, `%s`' % (self.log_identifier, return_string) )
-        return_string = return_string[1:]  # remove initial '+'
-        log.debug( u'%s -- return_string, `%s`' % (self.log_identifier, return_string) )
+        except Exception, e:
+            log.error( u'%s -- exception, `%s`' % (self.log_identifier, unicode(repr(e))) )
+            return { 'status': 'FAILURE', 'message': 'problem with "additional-rights" entry' }
 
+        # end validateAdditionalRights()
 
+    def validateBy( self, cell_data ):
+          '''
+          - Purpose: a) validate 'by' data; b) create a postable string for the item-api.
+          - Called by: controller.py
+          - TODO: make more robust by stripping unnecessary whitespace.
+          '''
+          try:
+            # if filled out, ensure both name and role
+            if len( cell_data ) > 0:
+              by_list = cell_data.split( '#' )
+              if not ( len(by_list[0]) > 0 and len(by_list[1]) > 0 ):
+                return_dict = { 'status': 'FAILURE', 'message': 'problem with "by" entry' }
+              else:
+                return_dict = { 'status': 'valid', 'normalized_cell_data': cell_data, 'parameter_label': 'by' }
+            else:
+              return_dict = { 'status': 'valid-empty', 'normalized_cell_data': '', 'parameter_label': 'by' }
+            log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
+            return return_dict
+          except Exception, e:
+            log.error( u'%s -- exception, `%s`' % (self.log_identifier, unicode(repr(e))) )
+            return { 'status': 'FAILURE', 'message': 'problem with "by" entry' }
 
-      # try:
-      #   # make identity list
-      #   identity_list = []
-      #   delete_identities = cell_data['delete'].split( ' | ' )
-      #   update_identities = cell_data['update'].split( ' | ' )
-      #   view_identities = cell_data['view'].split( ' | ' )
-      #   merged_identities = delete_identities[:]
-      #   merged_identities.extend( update_identities )
-      #   merged_identities.extend( view_identities )
-      #   merged_identities.sort()
-      #   for identity in merged_identities:
-      #     if not identity in identity_list:
-      #       identity_list.append( identity )
-      #   identity_list.sort( key=str.lower )  # sort helps with testing and logging
-      #   updateLog( message=u'identity_list is: %s' % identity_list, identifier=identifier )
-
-      #   # make string
-      #   return_string = ''
-      #   for identity in identity_list:
-      #     segment = '%s#' % identity
-      #     if identity in view_identities:
-      #       segment = segment + 'discover,display'
-      #     if identity in update_identities:
-      #       segment = segment + ',modify'
-      #     if identity in delete_identities:
-      #       segment = segment + ',delete'
-      #     updateLog( message=u'segment before comma-check is: %s' % segment, identifier=identifier )
-      #     # remove possible preceding comma
-      #     segment = segment.replace( '#,', '#' )
-      #     updateLog( message=u'segment is: %s' % segment, identifier=identifier )
-      #     return_string = '%s+%s' % ( return_string, segment )
-
-      #   # return
-      #   return_string = return_string[1:]  # remove initial '+'
-      #   return_dict = { 'status': 'valid', 'normalized_cell_data': return_string, 'parameter_label': 'additional_rights' }
-      #   updateLog( message=u'validateAdditionalRights() return_dict is: %s' % return_dict, identifier=identifier )
-      #   return return_dict
-
-      # except Exception, e:
-      #   updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
-      #   return { 'status': 'FAILURE', 'message': 'problem with "additional-rights" entry' }
-
-      # # end validateAdditionalRights()
-
+          # end validateBy()
 
     # end class Validator
 
@@ -613,81 +584,8 @@ def updateSpreadsheet( gdata_client, gdata_row_object, replacement_dict, identif
 
 
 
-def validateAdditionalRights( cell_data, identifier ):
-  '''
-  - Purpose: a) validates additional rights data; b) creates a postable string for the item-api.
-  - Called by: controller.py
-  '''
-
-  try:
-    # make identity list
-    identity_list = []
-    delete_identities = cell_data['delete'].split( ' | ' )
-    update_identities = cell_data['update'].split( ' | ' )
-    view_identities = cell_data['view'].split( ' | ' )
-    merged_identities = delete_identities[:]
-    merged_identities.extend( update_identities )
-    merged_identities.extend( view_identities )
-    merged_identities.sort()
-    for identity in merged_identities:
-      if not identity in identity_list:
-        identity_list.append( identity )
-    identity_list.sort( key=str.lower )  # sort helps with testing and logging
-    updateLog( message=u'identity_list is: %s' % identity_list, identifier=identifier )
-
-    # make string
-    return_string = ''
-    for identity in identity_list:
-      segment = '%s#' % identity
-      if identity in view_identities:
-        segment = segment + 'discover,display'
-      if identity in update_identities:
-        segment = segment + ',modify'
-      if identity in delete_identities:
-        segment = segment + ',delete'
-      updateLog( message=u'segment before comma-check is: %s' % segment, identifier=identifier )
-      # remove possible preceding comma
-      segment = segment.replace( '#,', '#' )
-      updateLog( message=u'segment is: %s' % segment, identifier=identifier )
-      return_string = '%s+%s' % ( return_string, segment )
-
-    # return
-    return_string = return_string[1:]  # remove initial '+'
-    return_dict = { 'status': 'valid', 'normalized_cell_data': return_string, 'parameter_label': 'additional_rights' }
-    updateLog( message=u'validateAdditionalRights() return_dict is: %s' % return_dict, identifier=identifier )
-    return return_dict
-
-  except Exception, e:
-    updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
-    return { 'status': 'FAILURE', 'message': 'problem with "additional-rights" entry' }
-
-  # end validateAdditionalRights()
 
 
-
-def validateBy( cell_data, identifier ):
-  '''
-  - Purpose: a) validate 'by' data; b) create a postable string for the item-api.
-  - Called by: controller.py
-  - TODO: make more robust by stripping unnecessary whitespace.
-  '''
-  try:
-    # if filled out, ensure both name and role
-    if len( cell_data ) > 0:
-      by_list = cell_data.split( '#' )
-      if not ( len(by_list[0]) > 0 and len(by_list[1]) > 0 ):
-        return_dict = { 'status': 'FAILURE', 'message': 'problem with "by" entry' }
-      else:
-        return_dict = { 'status': 'valid', 'normalized_cell_data': cell_data, 'parameter_label': 'by' }
-    else:
-      return_dict = { 'status': 'valid-empty', 'normalized_cell_data': '', 'parameter_label': 'by' }
-    updateLog( message=u'validateBy() return_dict is: %s' % return_dict, identifier=identifier )
-    return return_dict
-  except Exception, e:
-    updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
-    return { 'status': 'FAILURE', 'message': 'problem with "by" entry' }
-
-  # end validateBy()
 
 
 

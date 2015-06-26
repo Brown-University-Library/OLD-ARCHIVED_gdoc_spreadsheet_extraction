@@ -56,6 +56,13 @@ if ready_row == None:
 ## prepare data-dct for api
 row_data_dict = sheet_grabber.prepare_working_dct()
 
+# validate -- additional_rights
+vresult_additional_rights = validator.validateAdditionalRights( row_data_dict['additional_rights'] )
+
+# validate -- by
+vresult_by = validator.validateBy( row_data_dict['by'] )
+
+
 # # find a row that needs processing
 # gdata_target_row_data = utility_code.findRowToProcess( gdata_row_feed, identifier )
 # utility_code.updateLog( message=u'C: gdata_target_row_data is: %s' % gdata_target_row_data, identifier=identifier )
@@ -67,13 +74,13 @@ row_data_dict = sheet_grabber.prepare_working_dct()
 # row_data_dict = utility_code.makeRowDataDict( gdata_target_row_data['gdata_target_row'], identifier )
 # utility_code.updateLog( message=u'C: row_data_dict is: %s' % row_data_dict, identifier=identifier )
 
-# validate -- additional_rights
-vresult_additional_rights = utility_code.validateAdditionalRights( row_data_dict['additional_rights'], identifier )
-utility_code.updateLog( message=u'C: vresult_additional_rights is: %s' % vresult_additional_rights, identifier=identifier )
+# # validate -- additional_rights
+# vresult_additional_rights = utility_code.validateAdditionalRights( row_data_dict['additional_rights'], identifier )
+# utility_code.updateLog( message=u'C: vresult_additional_rights is: %s' % vresult_additional_rights, identifier=identifier )
 
-# validate -- by
-vresult_by = utility_code.validateBy( row_data_dict['by'], identifier )
-utility_code.updateLog( message=u'C: vresult_by is: %s' % vresult_by, identifier=identifier )
+# # validate -- by
+# vresult_by = utility_code.validateBy( row_data_dict['by'], identifier )
+# utility_code.updateLog( message=u'C: vresult_by is: %s' % vresult_by, identifier=identifier )
 
 # validate -- create_date
 vresult_create_date = utility_code.validateCreateDate( row_data_dict['create_date'], identifier )
