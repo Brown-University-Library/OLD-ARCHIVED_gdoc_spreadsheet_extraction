@@ -69,8 +69,8 @@ vresult_create_date = validator.validateCreateDate( row_data_dict['create_date']
 vresult_description = validator.validateDescription( row_data_dict['description'] )
 
 # validate -- file_path
-default_filepath_directory = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['default_filepath_directory']
-vresult_file_path = utility_code.validateFilePath( row_data_dict['file_path'], default_filepath_directory, identifier )
+# default_filepath_directory = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['default_filepath_directory']
+vresult_file_path = validator.validateFilePath( row_data_dict['file_path'] )
 
 
 
