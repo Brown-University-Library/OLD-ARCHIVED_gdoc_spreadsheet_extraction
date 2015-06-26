@@ -21,7 +21,7 @@ class SheetGrabber( object ):
         self.worksheet = None
         self.row_dcts = None
         self.original_ready_row_dct = None
-        self.original_ready_row_idx = None
+        self.original_ready_row_num = None
 
     def get_spreadsheet( self ):
         """ Accesses googledoc spreadsheet. """
@@ -29,7 +29,7 @@ class SheetGrabber( object ):
             json_key = json.load( open(self.CREDENTIALS_FILEPATH) )
             credentials = SignedJwtAssertionCredentials(
                 json_key['client_email'], json_key['private_key'], self.scope )
-            gc = gspread.authorize(credentials)
+            gc = gspread.authorize( credentials )
             self.spreadsheet = gc.open_by_key( self.SPREADSHEET_KEY )
             log.debug( u'%s -- spreadsheet grabbed, `%s`' % (self.log_identifier, self.spreadsheet) )
             return self.spreadsheet
@@ -47,13 +47,12 @@ class SheetGrabber( object ):
         """ Searches worksheet for row ready for ingestion. """
         self.row_dcts = self.worksheet.get_all_records( empty2zero=False, head=1 )
         for (i, row_dct) in enumerate( self.row_dcts ):
-            print u'`%s` - `%s`' % ( i, row_dct['Location'] )
             if row_dct['Ready'].strip() == 'Y':
                 self.original_ready_row_dct = row_dct
-                self.original_ready_row_idx = i
+                displayed_row_num = i + 2
+                self.original_ready_row_num = displayed_row_num
                 break
         return self.original_ready_row_dct
-
 
     # end class SheetGrabber
 

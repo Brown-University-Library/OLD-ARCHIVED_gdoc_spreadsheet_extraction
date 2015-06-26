@@ -22,8 +22,12 @@ class SheetGrabberTest(unittest.TestCase):
     def test_find_ready_row(self):
         sheet_grabber.get_worksheet()
         sheet_grabber.find_ready_row()
-        self.assertEqual( 2, sheet_grabber.original_ready_row_idx )
-        # self.assertEqual( '2', sheet_grabber.original_ready_row_dct )
+        if sheet_grabber.original_ready_row_dct == None:
+            self.assertEqual( None, sheet_grabber.original_ready_row_num )
+        else:
+            self.assertEqual( True, sheet_grabber.original_ready_row_num > 0 )
+
+    # end class SheetGrabberTest
 
 
 
