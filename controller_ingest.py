@@ -15,8 +15,8 @@
 """
 
 import datetime, logging, os, random, sys
-from gdoc_spreadsheet_extraction import utility_code
-from gdoc_spreadsheet_extraction.utility_code import SheetGrabber
+# from gdoc_spreadsheet_extraction import utility_code
+from gdoc_spreadsheet_extraction.utility_code import SheetGrabber, Validator
 
 
 ## settings
@@ -36,6 +36,7 @@ logger.info( u'%s -- log_identifier set' % log_identifier )
 
 ## instances
 sheet_grabber = SheetGrabber( log_identifier )
+validator = Validator( log_identifier )
 
 
 ## work
@@ -52,11 +53,8 @@ if ready_row == None:
     logger.info( u'%s -- no target row found; ending script' % log_identifier )
     sys.exit()
 
-## convert row fields expected dct
-
-
-1/0
-
+## prepare data-dct for api
+row_data_dict = sheet_grabber.prepare_working_dct()
 
 # # find a row that needs processing
 # gdata_target_row_data = utility_code.findRowToProcess( gdata_row_feed, identifier )
@@ -65,9 +63,9 @@ if ready_row == None:
 #   utility_code.updateLog( message=u'C: no target row found; ending script', identifier=identifier )
 #   sys.exit()
 
-# convert row fields to a dict-list
-row_data_dict = utility_code.makeRowDataDict( gdata_target_row_data['gdata_target_row'], identifier )
-utility_code.updateLog( message=u'C: row_data_dict is: %s' % row_data_dict, identifier=identifier )
+# # convert row fields to a dict-list
+# row_data_dict = utility_code.makeRowDataDict( gdata_target_row_data['gdata_target_row'], identifier )
+# utility_code.updateLog( message=u'C: row_data_dict is: %s' % row_data_dict, identifier=identifier )
 
 # validate -- additional_rights
 vresult_additional_rights = utility_code.validateAdditionalRights( row_data_dict['additional_rights'], identifier )
@@ -112,6 +110,10 @@ validity_result_list = [
   ]
 overall_validity_data = utility_code.runOverallValidity( validity_result_list, identifier )
 utility_code.updateLog( message=u'C: overall_validity_data is: %s' % overall_validity_data, identifier=identifier )
+
+
+1/0
+
 
 # update spreadsheet if necessary
 if overall_validity_data['status'] == 'FAILURE':
