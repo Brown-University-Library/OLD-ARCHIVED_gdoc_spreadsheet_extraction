@@ -41,6 +41,7 @@ class SheetGrabber( object ):
     def get_worksheet( self ):
         """ Accesses correct worksheet. """
         self.worksheet = self.spreadsheet.get_worksheet(0)
+        log.debug( u'%s -- worksheet grabbed, `%s`' % (self.log_identifier, self.worksheet) )
         return self.worksheet
 
     def find_ready_row( self ):
@@ -52,125 +53,152 @@ class SheetGrabber( object ):
                 displayed_row_num = i + 2
                 self.original_ready_row_num = displayed_row_num
                 break
+        log.debug( u'%s -- find-ready-row() complete; `%s`' % (self.log_identifier, pprint.pformat(self.original_ready_row_dct)) )
         return self.original_ready_row_dct
+
+    # def prepare_working_dct( self ):
+    #     """ Converts default row dct to expected dct format. """
+
+    #     rights_view = gdata_row_object.custom['rights-view'].text
+    #     rights_update = gdata_row_object.custom['rights-update'].text
+    #     rights_delete = gdata_row_object.custom['rights-delete'].text
+
+    #     row_dict = {
+    #       'additional_rights': { 'view': rights_view, 'update': rights_update, 'delete': rights_delete },
+    #       'by': gdata_row_object.custom['creator'].text,
+    #       'create_date': gdata_row_object.custom['datecreated'].text,
+    #       'description': gdata_row_object.custom['description'].text,
+    #       'file_path': gdata_row_object.custom['location'].text,
+    #       'folders': gdata_row_object.custom['folders'].text,
+    #       'keywords': gdata_row_object.custom['keywords'].text,
+    #       'title': gdata_row_object.custom['title'].text,
+    #       # new as of 2012-05-25
+    #       'ready': gdata_row_object.custom['ready'].text,
+    #       'pid': gdata_row_object.custom['pid'].text,
+    #       # 'delete': gdata_row_object.custom['delete'].text,  # disabled 2013-04-18; was causing error; production spreadsheet does not have this column.
+    #     }
+
+    #     updateLog( message=u'row_dict is: %s' % row_dict, identifier=identifier )
+    #     return row_dict
+
 
     # end class SheetGrabber
 
 
-def findRowToProcess( gdata_row_feed, identifier ):
-  '''
-  - Purpose: to find a row that needs processing.
-  - Called by: controller.py
-  '''
-  updateLog( message=u'starting findRowToProcess(); type(gdata_row_feed) is: %s' % type(gdata_row_feed), identifier=identifier )
-  updateLog( message=u'gdata_row_feed.__dict__ is: %s' % gdata_row_feed.__dict__, identifier=identifier )
-  updateLog( message=u'gdata_row_feed.entry is: %s' % gdata_row_feed.entry, identifier=identifier )
-  updateLog( message=u'gdata_row_feed.entry[3] is: %s' % gdata_row_feed.entry[3], identifier=identifier )
-  updateLog( message=u'gdata_row_feed.entry[3].__dict__ is: %s' % gdata_row_feed.entry[3].__dict__, identifier=identifier )
-  updateLog( message=u'gdata_row_feed.entry[3].custom is: %s' % gdata_row_feed.entry[3].custom, identifier=identifier )
-  updateLog( message=u'gdata_row_feed.entry[3].custom["title"] is: %s' % gdata_row_feed.entry[3].custom["title"], identifier=identifier )
-  updateLog( message=u'gdata_row_feed.entry[3].custom["title"].__dict__ is: %s' % gdata_row_feed.entry[3].custom["title"].__dict__, identifier=identifier )
-  updateLog( message=u'gdata_row_feed.entry[3].custom["ready"].text is: %s' % gdata_row_feed.entry[3].custom["ready"].text, identifier=identifier )
+# def findRowToProcess( gdata_row_feed, identifier ):
+#   '''
+#   - Purpose: to find a row that needs processing.
+#   - Called by: controller.py
+#   '''
+#   updateLog( message=u'starting findRowToProcess(); type(gdata_row_feed) is: %s' % type(gdata_row_feed), identifier=identifier )
+#   updateLog( message=u'gdata_row_feed.__dict__ is: %s' % gdata_row_feed.__dict__, identifier=identifier )
+#   updateLog( message=u'gdata_row_feed.entry is: %s' % gdata_row_feed.entry, identifier=identifier )
+#   updateLog( message=u'gdata_row_feed.entry[3] is: %s' % gdata_row_feed.entry[3], identifier=identifier )
+#   updateLog( message=u'gdata_row_feed.entry[3].__dict__ is: %s' % gdata_row_feed.entry[3].__dict__, identifier=identifier )
+#   updateLog( message=u'gdata_row_feed.entry[3].custom is: %s' % gdata_row_feed.entry[3].custom, identifier=identifier )
+#   updateLog( message=u'gdata_row_feed.entry[3].custom["title"] is: %s' % gdata_row_feed.entry[3].custom["title"], identifier=identifier )
+#   updateLog( message=u'gdata_row_feed.entry[3].custom["title"].__dict__ is: %s' % gdata_row_feed.entry[3].custom["title"].__dict__, identifier=identifier )
+#   updateLog( message=u'gdata_row_feed.entry[3].custom["ready"].text is: %s' % gdata_row_feed.entry[3].custom["ready"].text, identifier=identifier )
 
-  gdata_row_list = gdata_row_feed.entry
-  gdata_target_row = 'init'
-  for gdata_row in gdata_row_list:
-    if gdata_row.custom['ready'].text == 'Y':
-      gdata_target_row = gdata_row
-      updateLog( message=u'gdata_target_row found; it is: %s, and gdata_target_row.custom["ready"] is: %s' % (gdata_target_row, gdata_target_row.custom["ready"]), identifier=identifier )
-      break
+#   gdata_row_list = gdata_row_feed.entry
+#   gdata_target_row = 'init'
+#   for gdata_row in gdata_row_list:
+#     if gdata_row.custom['ready'].text == 'Y':
+#       gdata_target_row = gdata_row
+#       updateLog( message=u'gdata_target_row found; it is: %s, and gdata_target_row.custom["ready"] is: %s' % (gdata_target_row, gdata_target_row.custom["ready"]), identifier=identifier )
+#       break
 
-  if gdata_target_row == 'init':
-    return { 'status': 'no target row found' }
-  else:
-    return { 'status': 'target row found', 'gdata_target_row': gdata_target_row }
+#   if gdata_target_row == 'init':
+#     return { 'status': 'no target row found' }
+#   else:
+#     return { 'status': 'target row found', 'gdata_target_row': gdata_target_row }
 
-  # end def findRowToProcess()
-
-
-
-def getGdataClient( spreadsheet_name, identifier ):
-  '''
-  - Purpose: gets a logged-in gdata client object for a given spreadsheet.
-             Assumes a settings dict entry containing username/password info.
-  - Called by: controller.py
-  '''
-  try:
-    dict_key = '%s_dict' % spreadsheet_name
-    updateLog( message=u'dict_key is: %s' % dict_key, identifier=identifier )
-    if not dict_key in settings.SPREADSHEET_ACCESS_DICT:
-      return { 'status': 'FAILURE', 'message': 'no such spreadsheet' }
-    gd_client = gdata.spreadsheet.service.SpreadsheetsService()
-    updateLog( message=u'gd_client is: %s' % gd_client, identifier=identifier )
-    gd_client.email = settings.SPREADSHEET_ACCESS_DICT[dict_key]['google_docs_email_address']
-    gd_client.password = settings.SPREADSHEET_ACCESS_DICT[dict_key]['google_docs_password']
-    gd_client.source = 'python_programmatic_access_test'
-    gd_client.ProgrammaticLogin()
-    return { 'status': 'success', 'gdata_client_object': gd_client }
-  except Exception:
-    updateLog( message=u'- in getGdataClient(); exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
-    return { 'status': 'failure', 'message': 'see log' }
-  # end def getGdataClient()
+#   # end def findRowToProcess()
 
 
 
-def getSpreadsheetData( gdata_client, spreadsheet_name, identifier ):
-  '''
-  - Purpose: takes submitted credentials and gets necessary spreadsheet data.
-  - Called by: controller.py
-  '''
+# def getGdataClient( spreadsheet_name, identifier ):
+#   '''
+#   - Purpose: gets a logged-in gdata client object for a given spreadsheet.
+#              Assumes a settings dict entry containing username/password info.
+#   - Called by: controller.py
+#   '''
+#   try:
+#     dict_key = '%s_dict' % spreadsheet_name
+#     updateLog( message=u'dict_key is: %s' % dict_key, identifier=identifier )
+#     if not dict_key in settings.SPREADSHEET_ACCESS_DICT:
+#       return { 'status': 'FAILURE', 'message': 'no such spreadsheet' }
+#     gd_client = gdata.spreadsheet.service.SpreadsheetsService()
+#     updateLog( message=u'gd_client is: %s' % gd_client, identifier=identifier )
+#     gd_client.email = settings.SPREADSHEET_ACCESS_DICT[dict_key]['google_docs_email_address']
+#     gd_client.password = settings.SPREADSHEET_ACCESS_DICT[dict_key]['google_docs_password']
+#     gd_client.source = 'python_programmatic_access_test'
+#     gd_client.ProgrammaticLogin()
+#     return { 'status': 'success', 'gdata_client_object': gd_client }
+#   except Exception:
+#     updateLog( message=u'- in getGdataClient(); exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
+#     return { 'status': 'failure', 'message': 'see log' }
+#   # end def getGdataClient()
 
-  # get spreadsheet dict
-  try:
 
-    # determine spreadsheet to process
-    gd_spreadsheet_feed = gdata_client.GetSpreadsheetsFeed()
-    updateLog( message=u'gd_spreadsheet_feed is: %s' % gd_spreadsheet_feed, identifier=identifier )
-    updateLog( message=u'type(gd_spreadsheet_feed) is: %s' % type(gd_spreadsheet_feed), identifier=identifier )
-    updateLog( message=u'gd_spreadsheet_feed.entry is: %s' % gd_spreadsheet_feed.entry, identifier=identifier )
-    updateLog( message=u'gd_spreadsheet_feed.entry[0] is: %s' % gd_spreadsheet_feed.entry[0], identifier=identifier )
-    updateLog( message=u'gd_spreadsheet_feed.entry[0].__dict__ is: %s' % gd_spreadsheet_feed.entry[0].__dict__, identifier=identifier )
-    updateLog( message=u'gd_spreadsheet_feed.entry[0].title is: %s' % gd_spreadsheet_feed.entry[0].title, identifier=identifier )
-    updateLog( message=u'gd_spreadsheet_feed.entry[0].title.__dict__ is: %s' % gd_spreadsheet_feed.entry[0].title.__dict__, identifier=identifier )
-    updateLog( message=u'gd_spreadsheet_feed.entry[0].title.text is: %s' % gd_spreadsheet_feed.entry[0].title.text, identifier=identifier )
-    updateLog( message=u'gd_spreadsheet_feed.entry[0].link is: %s' % gd_spreadsheet_feed.entry[0].link, identifier=identifier )
-    updateLog( message=u'gd_spreadsheet_feed.entry[0].link[0] is: %s' % gd_spreadsheet_feed.entry[0].link[0], identifier=identifier )
-    updateLog( message=u'gd_spreadsheet_feed.entry[0].link[0].__dict__ is: %s' % gd_spreadsheet_feed.entry[0].link[0].__dict__, identifier=identifier )
-    gd_spreadsheet_list = gd_spreadsheet_feed.entry
-    our_gd_spreadsheet = 'init'
-    for entry in gd_spreadsheet_list:  # entry is an object of xml representing a single spreadsheet
-      if entry.title.text == spreadsheet_name:
-        our_gd_spreadsheet = entry
-        updateLog( message=u'spreadsheet found', identifier=identifier )
-    if our_gd_spreadsheet == 'init':
-      message = 'no spreadsheet match found'
-      updateLog( message=message, identifier=identifier )
-      return { 'status': 'FAILURE', 'message': message }
 
-    # get spreadsheet key
-    gd_spreadsheet_links_list = our_gd_spreadsheet.link
-    spreadsheet_key = 'init'
-    for entry in gd_spreadsheet_links_list:
-      if 'key' in entry.href:
-        spreadsheet_key = entry.href.split( '=' )[1]  #grabbing the data after '='
-        updateLog( message=u'spreadsheet key is: %s' % spreadsheet_key, identifier=identifier )
-        break
-    if spreadsheet_key == 'init':
-      message = u'no spreadsheet key found'
-      updateLog( message=message, identifier=identifier )
-      return { 'status': 'FAILURE', 'message': message }
+# def getSpreadsheetData( gdata_client, spreadsheet_name, identifier ):
+#   '''
+#   - Purpose: takes submitted credentials and gets necessary spreadsheet data.
+#   - Called by: controller.py
+#   '''
 
-    return {
-      'status': 'success',
-      'spreadsheet_key': spreadsheet_key,
-      'gdata_spreadsheet': our_gd_spreadsheet
-    }
+#   # get spreadsheet dict
+#   try:
 
-  except Exception, e:
-    updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
-    return { 'status': 'FAILURE', 'message': 'error logged' }
+#     # determine spreadsheet to process
+#     gd_spreadsheet_feed = gdata_client.GetSpreadsheetsFeed()
+#     updateLog( message=u'gd_spreadsheet_feed is: %s' % gd_spreadsheet_feed, identifier=identifier )
+#     updateLog( message=u'type(gd_spreadsheet_feed) is: %s' % type(gd_spreadsheet_feed), identifier=identifier )
+#     updateLog( message=u'gd_spreadsheet_feed.entry is: %s' % gd_spreadsheet_feed.entry, identifier=identifier )
+#     updateLog( message=u'gd_spreadsheet_feed.entry[0] is: %s' % gd_spreadsheet_feed.entry[0], identifier=identifier )
+#     updateLog( message=u'gd_spreadsheet_feed.entry[0].__dict__ is: %s' % gd_spreadsheet_feed.entry[0].__dict__, identifier=identifier )
+#     updateLog( message=u'gd_spreadsheet_feed.entry[0].title is: %s' % gd_spreadsheet_feed.entry[0].title, identifier=identifier )
+#     updateLog( message=u'gd_spreadsheet_feed.entry[0].title.__dict__ is: %s' % gd_spreadsheet_feed.entry[0].title.__dict__, identifier=identifier )
+#     updateLog( message=u'gd_spreadsheet_feed.entry[0].title.text is: %s' % gd_spreadsheet_feed.entry[0].title.text, identifier=identifier )
+#     updateLog( message=u'gd_spreadsheet_feed.entry[0].link is: %s' % gd_spreadsheet_feed.entry[0].link, identifier=identifier )
+#     updateLog( message=u'gd_spreadsheet_feed.entry[0].link[0] is: %s' % gd_spreadsheet_feed.entry[0].link[0], identifier=identifier )
+#     updateLog( message=u'gd_spreadsheet_feed.entry[0].link[0].__dict__ is: %s' % gd_spreadsheet_feed.entry[0].link[0].__dict__, identifier=identifier )
+#     gd_spreadsheet_list = gd_spreadsheet_feed.entry
+#     our_gd_spreadsheet = 'init'
+#     for entry in gd_spreadsheet_list:  # entry is an object of xml representing a single spreadsheet
+#       if entry.title.text == spreadsheet_name:
+#         our_gd_spreadsheet = entry
+#         updateLog( message=u'spreadsheet found', identifier=identifier )
+#     if our_gd_spreadsheet == 'init':
+#       message = 'no spreadsheet match found'
+#       updateLog( message=message, identifier=identifier )
+#       return { 'status': 'FAILURE', 'message': message }
 
-  # end def getSpreadsheetData()
+#     # get spreadsheet key
+#     gd_spreadsheet_links_list = our_gd_spreadsheet.link
+#     spreadsheet_key = 'init'
+#     for entry in gd_spreadsheet_links_list:
+#       if 'key' in entry.href:
+#         spreadsheet_key = entry.href.split( '=' )[1]  #grabbing the data after '='
+#         updateLog( message=u'spreadsheet key is: %s' % spreadsheet_key, identifier=identifier )
+#         break
+#     if spreadsheet_key == 'init':
+#       message = u'no spreadsheet key found'
+#       updateLog( message=message, identifier=identifier )
+#       return { 'status': 'FAILURE', 'message': message }
+
+#     return {
+#       'status': 'success',
+#       'spreadsheet_key': spreadsheet_key,
+#       'gdata_spreadsheet': our_gd_spreadsheet
+#     }
+
+#   except Exception, e:
+#     updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
+#     return { 'status': 'FAILURE', 'message': 'error logged' }
+
+#   # end def getSpreadsheetData()
 
 
 
@@ -246,67 +274,67 @@ def makeErrorString( error_info ):
 
 
 
-def makeOriginalRowDictData( gdata_row_object, identifier ):
-  '''
-  - Purpose: creates a simple dict of raw-row-values in preparation for an update.
-  - Called by: utility_code.prepareRowReplacementDictOnError() and utility_code.prepareRowReplacementDictOnSuccess()
-  '''
-  try:
-    from types import NoneType
-    assert type(gdata_row_object) == gdata.spreadsheet.SpreadsheetsList, type(gdata_row_object)
-    assert type(identifier) == unicode, type(identifier)
-    original_row_dict = {}
-    assert type(gdata_row_object.custom) == dict, type(gdata_row_object.custom)
-    assert type(gdata_row_object.custom[u'creator']) == gdata.spreadsheet.Custom, type(gdata_row_object.custom[u'creator'])
-    assert type(gdata_row_object.custom[u'creator'].text) == str, type(gdata_row_object.custom[u'creator'].text)
-    custom_keys = gdata_row_object.custom.keys()
-    for key in ['creator', 'datecreated', 'description', 'folders', 'ingestionstatus', 'keywords', 'location', 'notes-nonbdr', 'orangerequired', 'pid', 'ready', 'rights-delete', 'rights-update', 'rights-view', 'tempurl', 'title']:
-        assert key in custom_keys, u'%s not in custom_keys %s' % (key, custom_keys)
-    for k, v in gdata_row_object.custom.items():
-      if type(v.text) != NoneType:
-        original_row_dict[k.decode(u'utf-8', u'replace')] = v.text.decode(u'utf-8', u'replace')
-      else:
-        original_row_dict[k.decode(u'utf-8', u'replace')] = None
-    updateLog( message=u'- in makeOriginalRowDictData(); original_row_dict is: %s' % original_row_dict, identifier=identifier )
-    return original_row_dict
-  except Exception, e:
-    message = message=u'makeOriginalRowDictData(); exception detail is: %s' % makeErrorString(sys.exc_info())
-    updateLog( message=message, identifier=identifier, message_importance=u'high' )
-    return_dict = { u'status': u'FAILURE', u'error_message': message }
-  # end def makeOriginalRowDictData()
+# def makeOriginalRowDictData( gdata_row_object, identifier ):
+#   '''
+#   - Purpose: creates a simple dict of raw-row-values in preparation for an update.
+#   - Called by: utility_code.prepareRowReplacementDictOnError() and utility_code.prepareRowReplacementDictOnSuccess()
+#   '''
+#   try:
+#     from types import NoneType
+#     assert type(gdata_row_object) == gdata.spreadsheet.SpreadsheetsList, type(gdata_row_object)
+#     assert type(identifier) == unicode, type(identifier)
+#     original_row_dict = {}
+#     assert type(gdata_row_object.custom) == dict, type(gdata_row_object.custom)
+#     assert type(gdata_row_object.custom[u'creator']) == gdata.spreadsheet.Custom, type(gdata_row_object.custom[u'creator'])
+#     assert type(gdata_row_object.custom[u'creator'].text) == str, type(gdata_row_object.custom[u'creator'].text)
+#     custom_keys = gdata_row_object.custom.keys()
+#     for key in ['creator', 'datecreated', 'description', 'folders', 'ingestionstatus', 'keywords', 'location', 'notes-nonbdr', 'orangerequired', 'pid', 'ready', 'rights-delete', 'rights-update', 'rights-view', 'tempurl', 'title']:
+#         assert key in custom_keys, u'%s not in custom_keys %s' % (key, custom_keys)
+#     for k, v in gdata_row_object.custom.items():
+#       if type(v.text) != NoneType:
+#         original_row_dict[k.decode(u'utf-8', u'replace')] = v.text.decode(u'utf-8', u'replace')
+#       else:
+#         original_row_dict[k.decode(u'utf-8', u'replace')] = None
+#     updateLog( message=u'- in makeOriginalRowDictData(); original_row_dict is: %s' % original_row_dict, identifier=identifier )
+#     return original_row_dict
+#   except Exception, e:
+#     message = message=u'makeOriginalRowDictData(); exception detail is: %s' % makeErrorString(sys.exc_info())
+#     updateLog( message=message, identifier=identifier, message_importance=u'high' )
+#     return_dict = { u'status': u'FAILURE', u'error_message': message }
+#   # end def makeOriginalRowDictData()
 
 
 
-def makeRowDataDict( gdata_row_object, identifier ):
-  '''
-  - Purpose: converts gdata_row_object into regular dict.
-  - Called by: controller.py
-  '''
-  updateLog( message=u'gdata_row_object is: %s' % gdata_row_object, identifier=identifier )
+# def makeRowDataDict( gdata_row_object, identifier ):
+#   '''
+#   - Purpose: converts gdata_row_object into regular dict.
+#   - Called by: controller.py
+#   '''
+#   updateLog( message=u'gdata_row_object is: %s' % gdata_row_object, identifier=identifier )
 
-  rights_view = gdata_row_object.custom['rights-view'].text
-  rights_update = gdata_row_object.custom['rights-update'].text
-  rights_delete = gdata_row_object.custom['rights-delete'].text
+#   rights_view = gdata_row_object.custom['rights-view'].text
+#   rights_update = gdata_row_object.custom['rights-update'].text
+#   rights_delete = gdata_row_object.custom['rights-delete'].text
 
-  row_dict = {
-    'additional_rights': { 'view': rights_view, 'update': rights_update, 'delete': rights_delete },
-    'by': gdata_row_object.custom['creator'].text,
-    'create_date': gdata_row_object.custom['datecreated'].text,
-    'description': gdata_row_object.custom['description'].text,
-    'file_path': gdata_row_object.custom['location'].text,
-    'folders': gdata_row_object.custom['folders'].text,
-    'keywords': gdata_row_object.custom['keywords'].text,
-    'title': gdata_row_object.custom['title'].text,
-    # new as of 2012-05-25
-    'ready': gdata_row_object.custom['ready'].text,
-    'pid': gdata_row_object.custom['pid'].text,
-    # 'delete': gdata_row_object.custom['delete'].text,  # disabled 2013-04-18; was causing error; production spreadsheet does not have this column.
-  }
+#   row_dict = {
+#     'additional_rights': { 'view': rights_view, 'update': rights_update, 'delete': rights_delete },
+#     'by': gdata_row_object.custom['creator'].text,
+#     'create_date': gdata_row_object.custom['datecreated'].text,
+#     'description': gdata_row_object.custom['description'].text,
+#     'file_path': gdata_row_object.custom['location'].text,
+#     'folders': gdata_row_object.custom['folders'].text,
+#     'keywords': gdata_row_object.custom['keywords'].text,
+#     'title': gdata_row_object.custom['title'].text,
+#     # new as of 2012-05-25
+#     'ready': gdata_row_object.custom['ready'].text,
+#     'pid': gdata_row_object.custom['pid'].text,
+#     # 'delete': gdata_row_object.custom['delete'].text,  # disabled 2013-04-18; was causing error; production spreadsheet does not have this column.
+#   }
 
-  updateLog( message=u'row_dict is: %s' % row_dict, identifier=identifier )
-  return row_dict
+#   updateLog( message=u'row_dict is: %s' % row_dict, identifier=identifier )
+#   return row_dict
 
-  # end def makeRowDataDict()
+#   # end def makeRowDataDict()
 
 
 
