@@ -241,6 +241,40 @@ class Validator( object ):
             return return_dict
           # end validateFolders()
 
+    def validateKeywords( self, cell_data ):
+          '''
+          - Purpose: a) validate 'keywords' data; b) create a postable string for the item-api
+          - Called by: controller.py
+          '''
+          try:
+            updateLog( message=u'validateKeywords() cell_data is: %s' % cell_data, identifier=identifier )
+            # ensure not empty
+            if len( cell_data.strip() ) == 0:
+              return_dict = { 'status': 'FAILURE', 'message': 'at least one keyword is required' }
+            else:
+              # split on space-pipe-space
+              keyword_list = cell_data.split( ' | ' )
+              log.debug( u'%s -- keyword_list, `%s`' % (self.log_identifier, keyword_list) )
+              cleaned_list = []
+              for entry in keyword_list:
+                cleaned_entry = entry.strip()
+                cleaned_list.append( cleaned_entry )
+              log.debug( u'%s -- cleaned_list, `%s`' % (self.log_identifier, cleaned_list) )
+              cleaned_list.sort()
+              log.debug( u'%s -- cleaned_list b, `%s`' % (self.log_identifier, cleaned_list) )
+              return_string = ''
+              for keyword in cleaned_list:
+                return_string = '%s+%s' % ( return_string, keyword )
+              return_string = return_string[1:]  # get rid of initial '+'
+              return_dict = { 'status': 'valid', 'normalized_cell_data': return_string, 'parameter_label': 'keywords' }
+            log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
+            return return_dict
+          except Exception, e:
+            log.error( u'%s -- exception, `%s`' % (self.log_identifier, unicode(repr(e))) )
+            return_dict =  { 'status': 'FAILURE', 'message': 'problem with "keywords" entry' }
+            return return_dict
+          # end validateKeywords()
+
     # end class Validator
 
 
@@ -680,43 +714,6 @@ def validateDeletionDict( deletion_dict, log_id ):
     print u'validateDeletionDict() exception -'; pprint.pprint( error_dict )
     updateLog( message=u'- in uc.validateDeletionDict(); exception detail is: %s' % error_dict, message_importance='high', identifier=log_id )
     return { u'status': u'FAILURE', u'data': error_dict }
-
-
-def validateKeywords( cell_data, identifier ):
-  '''
-  - Purpose: a) validate 'keywords' data; b) create a postable string for the item-api
-  - Called by: controller.py
-  '''
-  try:
-    updateLog( message=u'validateKeywords() cell_data is: %s' % cell_data, identifier=identifier )
-    # ensure not empty
-    if len( cell_data.strip() ) == 0:
-      return_dict = { 'status': 'FAILURE', 'message': 'at least one keyword is required' }
-    else:
-      # split on space-pipe-space
-      keyword_list = cell_data.split( ' | ' )
-      updateLog( message=u'validateKeywords() keyword_list is: %s' % keyword_list, identifier=identifier )
-      cleaned_list = []
-      for entry in keyword_list:
-        cleaned_entry = entry.strip()
-        cleaned_list.append( cleaned_entry )
-      updateLog( message=u'validateKeywords() cleaned_list is: %s' % cleaned_list, identifier=identifier )
-      cleaned_list.sort()
-      updateLog( message=u'validateKeywords() cleaned_list b is: %s' % cleaned_list, identifier=identifier )
-      return_string = ''
-      for keyword in cleaned_list:
-        return_string = '%s+%s' % ( return_string, keyword )
-      return_string = return_string[1:]  # get rid of initial '+'
-      return_dict = { 'status': 'valid', 'normalized_cell_data': return_string, 'parameter_label': 'keywords' }
-    updateLog( message=u'validateKeywords() return_dict is: %s' % return_dict, identifier=identifier )
-    return return_dict
-  except Exception, e:
-    return_dict =  { 'status': 'FAILURE', 'message': 'problem with "keywords" entry' }
-    updateLog( message=u'validateKeywords() return_dict is: %s' % return_dict, identifier=identifier )
-    updateLog( message=u'validateKeywords() exception detail is: %s' % makeErrorString(sys.exc_info()), identifier=identifier, message_importance='high' )
-    return return_dict
-  # end validateKeywords()
-
 
 
 def validateTitle( cell_data, identifier ):
