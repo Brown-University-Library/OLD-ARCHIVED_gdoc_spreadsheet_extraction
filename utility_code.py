@@ -14,6 +14,7 @@ class Validator( object ):
 
     def __init__( self, log_identifier ):
         self.log_identifier = log_identifier
+        self.DEFAULT_FILEPATH_DIRECTORY = os.environ['ASSMNT__DEFAULT_FILEPATH_DIRECTORY']
 
     def validateAdditionalRights( self, cell_data ):
         try:
@@ -128,6 +129,41 @@ class Validator( object ):
             return return_dict
 
         # end validateDescription()
+
+    def validateFilePath( self, cell_data, self.DEFAULT_FILEPATH_DIRECTORY ):
+          '''
+          - Purpose: a) validate 'file_path' data; b) create a postable string for the item-api
+          - Called by: controller.py
+          - TODO: add test for file-does-not-exist
+          '''
+          try:
+            updateLog( message=u'validateFilePath() cell_data is: %s' % cell_data, identifier=identifier )
+            updateLog( message=u'validateFilePath() default_filepath_directory is: %s' % default_filepath_directory, identifier=identifier )
+            # make path
+            if '/' in cell_data:
+              file_path = cell_data
+            else:
+              file_path = '%s%s' % ( default_filepath_directory, cell_data )  # default_filepath_directory contains trailing slash
+            updateLog( message=u'validateFilePath() file_path is: %s' % file_path, identifier=identifier )
+            # see if file exists
+            return_dict = 'init'
+            if not os.path.exists( file_path ):
+              return_dict = { 'status': 'FAILURE', 'message': 'file not found' }
+            elif not os.path.isfile( file_path ):
+              return_dict = { 'status': 'FAILURE', 'message': 'path valid but not a file' }
+            else:
+              return_dict = { 'status': 'valid', 'normalized_cell_data': file_path, 'parameter_label': 'file_path' }
+            # return
+            updateLog( message=u'validateFilePath() return_dict is: %s' % return_dict, identifier=identifier )
+            return return_dict
+          except Exception, e:
+            return_dict =  { 'status': 'FAILURE', 'message': 'problem with "file_path" entry' }
+            updateLog( message=u'validateFilePath() return_dict is: %s' % return_dict, identifier=identifier )
+            updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
+            return return_dict
+
+      # end validateFilePath()
+
 
     # end class Validator
 
@@ -570,39 +606,6 @@ def validateDeletionDict( deletion_dict, log_id ):
     return { u'status': u'FAILURE', u'data': error_dict }
 
 
-def validateFilePath( cell_data, default_filepath_directory, identifier ):
-  '''
-  - Purpose: a) validate 'file_path' data; b) create a postable string for the item-api
-  - Called by: controller.py
-  - TODO: add test for file-does-not-exist
-  '''
-  try:
-    updateLog( message=u'validateFilePath() cell_data is: %s' % cell_data, identifier=identifier )
-    updateLog( message=u'validateFilePath() default_filepath_directory is: %s' % default_filepath_directory, identifier=identifier )
-    # make path
-    if '/' in cell_data:
-      file_path = cell_data
-    else:
-      file_path = '%s%s' % ( default_filepath_directory, cell_data )  # default_filepath_directory contains trailing slash
-    updateLog( message=u'validateFilePath() file_path is: %s' % file_path, identifier=identifier )
-    # see if file exists
-    return_dict = 'init'
-    if not os.path.exists( file_path ):
-      return_dict = { 'status': 'FAILURE', 'message': 'file not found' }
-    elif not os.path.isfile( file_path ):
-      return_dict = { 'status': 'FAILURE', 'message': 'path valid but not a file' }
-    else:
-      return_dict = { 'status': 'valid', 'normalized_cell_data': file_path, 'parameter_label': 'file_path' }
-    # return
-    updateLog( message=u'validateFilePath() return_dict is: %s' % return_dict, identifier=identifier )
-    return return_dict
-  except Exception, e:
-    return_dict =  { 'status': 'FAILURE', 'message': 'problem with "file_path" entry' }
-    updateLog( message=u'validateFilePath() return_dict is: %s' % return_dict, identifier=identifier )
-    updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), message_importance='high' )
-    return return_dict
-
-  # end validateFilePath()
 
 
 

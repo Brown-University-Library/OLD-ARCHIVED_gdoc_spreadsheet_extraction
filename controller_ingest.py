@@ -68,6 +68,11 @@ vresult_create_date = validator.validateCreateDate( row_data_dict['create_date']
 # validate -- description
 vresult_description = validator.validateDescription( row_data_dict['description'] )
 
+# validate -- file_path
+default_filepath_directory = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['default_filepath_directory']
+vresult_file_path = utility_code.validateFilePath( row_data_dict['file_path'], default_filepath_directory, identifier )
+
+
 
 
 
@@ -98,10 +103,10 @@ vresult_description = validator.validateDescription( row_data_dict['description'
 # vresult_description = utility_code.validateDescription( row_data_dict['description'], identifier )
 # utility_code.updateLog( message=u'C: vresult_description is: %s' % vresult_description, identifier=identifier )
 
-# validate -- file_path
-default_filepath_directory = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['default_filepath_directory']
-vresult_file_path = utility_code.validateFilePath( row_data_dict['file_path'], default_filepath_directory, identifier )
-utility_code.updateLog( message=u'C: vresult_file_path is: %s' % vresult_file_path, identifier=identifier )
+# # validate -- file_path
+# default_filepath_directory = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['default_filepath_directory']
+# vresult_file_path = utility_code.validateFilePath( row_data_dict['file_path'], default_filepath_directory, identifier )
+# utility_code.updateLog( message=u'C: vresult_file_path is: %s' % vresult_file_path, identifier=identifier )
 
 # validate -- folders
 spreadsheet_folder_api_identity = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['permitted_folder_api_add_items_identity']
