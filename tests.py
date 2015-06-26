@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import unittest
+import pprint, unittest
 from gdoc_spreadsheet_extraction.utility_code import SheetGrabber
 
 
@@ -16,8 +16,14 @@ class SheetGrabberTest(unittest.TestCase):
         self.assertEqual( "<class 'gspread.models.Spreadsheet'>", repr(type(self.spreadsheet)) )
 
     def test_get_worksheet(self):
-        worksheet = sheet_grabber.get_worksheet()
-        self.assertEqual( "<class 'gspread.models.Worksheet'>", repr(type(worksheet)) )
+        sheet_grabber.get_worksheet()
+        self.assertEqual( "<class 'gspread.models.Worksheet'>", repr(type(sheet_grabber.worksheet)) )
+
+    def test_find_ready_row(self):
+        sheet_grabber.get_worksheet()
+        sheet_grabber.find_ready_row()
+        self.assertEqual( 2, sheet_grabber.original_ready_row_idx )
+        # self.assertEqual( '2', sheet_grabber.original_ready_row_dct )
 
 
 

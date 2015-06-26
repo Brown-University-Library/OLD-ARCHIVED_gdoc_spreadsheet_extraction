@@ -18,6 +18,10 @@ class SheetGrabber( object ):
         self.scope = ['https://spreadsheets.google.com/feeds']
         self.log_identifier = log_identifier
         self.spreadsheet = None
+        self.worksheet = None
+        self.row_dcts = None
+        self.original_ready_row_dct = None
+        self.original_ready_row_idx = None
 
     def get_spreadsheet( self ):
         """ Accesses googledoc spreadsheet. """
@@ -36,8 +40,20 @@ class SheetGrabber( object ):
 
     def get_worksheet( self ):
         """ Accesses correct worksheet. """
-        worksheet = self.spreadsheet.get_worksheet(0)
-        return worksheet
+        self.worksheet = self.spreadsheet.get_worksheet(0)
+        return self.worksheet
+
+    def find_ready_row( self ):
+        """ Searches worksheet for row ready for ingestion. """
+        self.row_dcts = self.worksheet.get_all_records( empty2zero=False, head=1 )
+        for (i, row_dct) in enumerate( self.row_dcts ):
+            print u'`%s` - `%s`' % ( i, row_dct['Location'] )
+            if row_dct['Ready'].strip() == 'Y':
+                self.original_ready_row_dct = row_dct
+                self.original_ready_row_idx = i
+                break
+        return self.original_ready_row_dct
+
 
     # end class SheetGrabber
 
