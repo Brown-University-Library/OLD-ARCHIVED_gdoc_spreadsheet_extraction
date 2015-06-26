@@ -69,8 +69,12 @@ vresult_create_date = validator.validateCreateDate( row_data_dict['create_date']
 vresult_description = validator.validateDescription( row_data_dict['description'] )
 
 # validate -- file_path
-# default_filepath_directory = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['default_filepath_directory']
 vresult_file_path = validator.validateFilePath( row_data_dict['file_path'] )
+
+# validate -- folders
+# spreadsheet_folder_api_identity = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['permitted_folder_api_add_items_identity']
+vresult_folders = validator.validateFolders( row_data_dict['folders'] )
+
 
 
 
@@ -108,10 +112,10 @@ vresult_file_path = validator.validateFilePath( row_data_dict['file_path'] )
 # vresult_file_path = utility_code.validateFilePath( row_data_dict['file_path'], default_filepath_directory, identifier )
 # utility_code.updateLog( message=u'C: vresult_file_path is: %s' % vresult_file_path, identifier=identifier )
 
-# validate -- folders
-spreadsheet_folder_api_identity = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['permitted_folder_api_add_items_identity']
-vresult_folders = utility_code.validateFolders( row_data_dict['folders'], spreadsheet_folder_api_identity, identifier )
-utility_code.updateLog( message=u'C: vresult_folders is: %s' % vresult_folders, identifier=identifier )
+# # validate -- folders
+# spreadsheet_folder_api_identity = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['permitted_folder_api_add_items_identity']
+# vresult_folders = utility_code.validateFolders( row_data_dict['folders'], spreadsheet_folder_api_identity, identifier )
+# utility_code.updateLog( message=u'C: vresult_folders is: %s' % vresult_folders, identifier=identifier )
 
 # validate -- keywords
 vresult_keywords = utility_code.validateKeywords( row_data_dict['keywords'], identifier )

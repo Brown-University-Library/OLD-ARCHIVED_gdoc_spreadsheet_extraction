@@ -15,6 +15,8 @@ class Validator( object ):
     def __init__( self, log_identifier ):
         self.log_identifier = log_identifier
         self.DEFAULT_FILEPATH_DIRECTORY = os.environ['ASSMNT__DEFAULT_FILEPATH_DIRECTORY']  # should contain trailing slash
+        self.PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY = os.environ['ASSMNT__PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY']
+        self.FOLDER_API_URL = os.environ['ASSMNT__FOLDER_API_URL']
 
     def validateAdditionalRights( self, cell_data ):
         try:
@@ -163,6 +165,81 @@ class Validator( object ):
 
       # end validateFilePath()
 
+    def validateFolders( self, cell_data ):
+          '''
+          - Purpose: a) validate 'folders' data; b) create a postable string for the item-api
+          - Called by: controller.py
+          - TODO: add test for multiple folders / make more robust by stripping unnecessary white-space
+          '''
+          try:
+            log.debug( u'%s -- cell_data, `%s`' % (self.log_identifier, cell_data) )
+            log.debug( u'%s -- spreadsheet_folder_api_identity, `%s`' % (self.log_identifier, self.PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY) )
+
+            return_dict = 'init'
+            # see if the there's folder info
+            cell_data = cell_data.strip()
+            if len( cell_data ) == 0:
+              return_dict =  { 'status': 'FAILURE', 'message': 'no folder specified' }
+            # get a list of folders (might only be one)
+            folder_list = cell_data.split( ' | ' )
+            cleaned_folder_list = []
+            for entry in folder_list:
+              cleaned_entry = entry.strip()
+              cleaned_folder_list.append( cleaned_entry )
+
+            # process folders
+            log.debug( u'%s -- cleaned_folder_list, `%s`' % (self.log_identifier, cleaned_folder_list) )
+            normalized_cell_string = ''
+            for cleaned_entry in cleaned_folder_list:
+
+              # see if it's formatted properly
+              if return_dict == 'init' and not cleaned_entry.count('[') == 1:
+                return_dict =  { 'status': 'FAILURE', 'message': 'folder data formatted incorrectly' }
+                break
+              # see if it exists
+              if return_dict == 'init':
+                folder_parts = cleaned_entry.split( '[' )
+                folder_name = folder_parts[0]
+                folder_id = folder_parts[1][0:-1]
+                # folder_api_full_url = '%s%s/?identities=%s' % (self.FOLDER_API_URL, folder_id, json.dumps([self.PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY]))
+                # log.debug( u'%s -- folder_api_full_url, `%s`' % (self.log_identifier, folder_api_full_url) )
+                # r = requests.get(folder_api_full_url, verify=False)
+                folder_api_url_root = u'%s%s/' % ( self.FOLDER_API_URL, folder_id )
+                log.debug( u'%s -- folder_api_url_root, `%s`' % (self.log_identifier, folder_api_url_root) )
+                params = { 'identities': json.dumps([self.PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY]) }
+                r = requests.get( folder_api_url_root, params )
+                log.debug( u'%s -- requests url, `%s`' % (self.log_identifier, r.url) )
+                if not r.ok:  # forbidden or not found
+                  log.debug( u'%s -- error from collection api, `%s - %s`' % (self.log_identifier, r.status_code, r.text) )
+                  # updateLog(message=u'uc.validateFolders() error from collection api: %s - %s' % (r.status_code, r.text))
+                  return_dict =  {'status': 'FAILURE', 'message': u'folder not found'}
+                  break
+              # folder-id found, confirm name is correct
+              if return_dict == 'init':
+                folder_info = json.loads(r.text)
+                if not folder_info['name'] == folder_name:
+                  return_dict = { 'status': 'FAILURE', 'message': 'folder name/id mismatch' }
+                  break
+              # folder found, check if spreadsheet user is permitted to add items
+              if return_dict == 'init':
+                if spreadsheet_folder_api_identity in folder_info['add_items']:
+                  normalized_cell_string = '%s+%s#%s' % ( normalized_cell_string, folder_name, folder_id )
+                else:
+                  return_dict = { 'status': 'FAILURE', 'message': 'not permitted to add items to specified folder' }
+                  break
+
+            # return
+            if return_dict == 'init':
+              normalized_cell_string = normalized_cell_string[1:]  # to get rid of initial '+'
+              return_dict = { 'status': 'valid', 'normalized_cell_data': normalized_cell_string, 'parameter_label': 'folders' }
+            log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
+            # updateLog( message=u'validateFolders() return_dict is: %s' % return_dict, identifier=identifier )
+            return return_dict
+          except Exception as e:
+            log.error( u'%s -- exception, `%s`' % (self.log_identifier, unicode(repr(e))) )
+            return_dict =  { 'status': 'FAILURE', 'message': 'problem with "folders" entry' }
+            return return_dict
+          # end validateFolders()
 
     # end class Validator
 
@@ -603,79 +680,6 @@ def validateDeletionDict( deletion_dict, log_id ):
     print u'validateDeletionDict() exception -'; pprint.pprint( error_dict )
     updateLog( message=u'- in uc.validateDeletionDict(); exception detail is: %s' % error_dict, message_importance='high', identifier=log_id )
     return { u'status': u'FAILURE', u'data': error_dict }
-
-
-
-
-
-def validateFolders( cell_data, spreadsheet_folder_api_identity, identifier ):
-  '''
-  - Purpose: a) validate 'folders' data; b) create a postable string for the item-api
-  - Called by: controller.py
-  - TODO: add test for multiple folders / make more robust by stripping unnecessary white-space
-  '''
-  try:
-    updateLog( message=u'in uc.validateFolders(); cell_data is: %s, and spreadsheet_folder_api_identity is: %s' % (cell_data, spreadsheet_folder_api_identity), identifier=identifier )
-
-    return_dict = 'init'
-    # see if the there's folder info
-    cell_data = cell_data.strip()
-    if len( cell_data ) == 0:
-      return_dict =  { 'status': 'FAILURE', 'message': 'no folder specified' }
-    # get a list of folders (might only be one)
-    folder_list = cell_data.split( ' | ' )
-    cleaned_folder_list = []
-    for entry in folder_list:
-      cleaned_entry = entry.strip()
-      cleaned_folder_list.append( cleaned_entry )
-
-    # process folders
-    updateLog( message=u'in uc.validateFolders(); cleaned_folder_list is: %s' % cleaned_folder_list, identifier=identifier )
-    normalized_cell_string = ''
-    for cleaned_entry in cleaned_folder_list:
-
-      # see if it's formatted properly
-      if return_dict == 'init' and not cleaned_entry.count('[') == 1:
-        return_dict =  { 'status': 'FAILURE', 'message': 'folder data formatted incorrectly' }
-        break
-      # see if it exists
-      if return_dict == 'init':
-        folder_parts = cleaned_entry.split( '[' )
-        folder_name = folder_parts[0]
-        folder_id = folder_parts[1][0:-1]
-        folder_api_full_url = '%s%s/?identities=%s' % (settings.FOLDER_API_URL, folder_id, json.dumps([spreadsheet_folder_api_identity]))
-        r = requests.get(folder_api_full_url, verify=False)
-        if not r.ok:  # forbidden or not found
-          updateLog(message=u'uc.validateFolders() error from collection api: %s - %s' % (r.status_code, r.text))
-          return_dict =  {'status': 'FAILURE', 'message': u'folder not found'}
-          break
-      # folder-id found, confirm name is correct
-      if return_dict == 'init':
-        folder_info = json.loads(r.text)
-        if not folder_info['name'] == folder_name:
-          return_dict = { 'status': 'FAILURE', 'message': 'folder name/id mismatch' }
-          break
-      # folder found, check if spreadsheet user is permitted to add items
-      if return_dict == 'init':
-        if spreadsheet_folder_api_identity in folder_info['add_items']:
-          normalized_cell_string = '%s+%s#%s' % ( normalized_cell_string, folder_name, folder_id )
-        else:
-          return_dict = { 'status': 'FAILURE', 'message': 'not permitted to add items to specified folder' }
-          break
-
-    # return
-    if return_dict == 'init':
-      normalized_cell_string = normalized_cell_string[1:]  # to get rid of initial '+'
-      return_dict = { 'status': 'valid', 'normalized_cell_data': normalized_cell_string, 'parameter_label': 'folders' }
-    updateLog( message=u'validateFolders() return_dict is: %s' % return_dict, identifier=identifier )
-    return return_dict
-  except Exception as e:
-    return_dict =  { 'status': 'FAILURE', 'message': 'problem with "folders" entry' }
-    updateLog( message=u'validateFolders() return_dict is: %s' % return_dict, identifier=identifier )
-    updateLog( message=u'- exception detail is: %s' % makeErrorString(sys.exc_info()), identifier=identifier, message_importance='high' )
-    return return_dict
-  # end validateFolders()
-
 
 
 def validateKeywords( cell_data, identifier ):
