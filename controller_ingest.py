@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 - Purpose: script manages the detection of items in a google doc spreadsheet
     which are ready to be uploaded to the bdr, and, for each one,
@@ -40,6 +42,11 @@ sheet_grabber = SheetGrabber( log_identifier )
 
 ## get spreadsheet object
 spreadsheet = sheet_grabber.get_spreadsheet()
+
+## get worksheet
+worksheet = sheet_grabber.get_worksheet()
+
+
 
 # get spreadsheet rows
 gdata_row_feed = gdata_client.GetListFeed( spreadsheet_data['spreadsheet_key'] )

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json, logging, os, pprint, sys
 import gspread
 import requests
@@ -15,6 +17,7 @@ class SheetGrabber( object ):
         self.SPREADSHEET_KEY = os.environ['ASSMNT__SPREADSHEET_KEY']
         self.scope = ['https://spreadsheets.google.com/feeds']
         self.log_identifier = log_identifier
+        self.spreadsheet = None
 
     def get_spreadsheet( self ):
         """ Accesses googledoc spreadsheet. """
@@ -23,13 +26,18 @@ class SheetGrabber( object ):
             credentials = SignedJwtAssertionCredentials(
                 json_key['client_email'], json_key['private_key'], self.scope )
             gc = gspread.authorize(credentials)
-            spreadsheet = gc.open_by_key( self.SPREADSHEET_KEY )
-            log.debug( u'%s -- spreadsheet grabbed, `%s`' % (self.log_identifier, spreadsheet) )
-            return spreadsheet
+            self.spreadsheet = gc.open_by_key( self.SPREADSHEET_KEY )
+            log.debug( u'%s -- spreadsheet grabbed, `%s`' % (self.log_identifier, self.spreadsheet) )
+            return self.spreadsheet
         except Exception as e:
             message = u'Problem grabbing spreadsheet; exception, `%s`' % unicode(repr(e))
             log.error( message )
             raise Exception( message )
+
+    def get_worksheet( self ):
+        """ Accesses correct worksheet. """
+        worksheet = self.spreadsheet.get_worksheet(0)
+        return worksheet
 
     # end class SheetGrabber
 
