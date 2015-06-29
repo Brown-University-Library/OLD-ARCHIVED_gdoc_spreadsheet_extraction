@@ -14,12 +14,28 @@ class SheetUpdater( object ):
 
     def __init__( self, log_identifier ):
         self.log_identifier = log_identifier
+        self.ingestion_status_column_name = u'IngestionStatus'
+        self.ingestion_status_column_int = None
 
     def update_on_error( self, worksheet, error_data ):
         """ Pulls error message from error_data & updates worksheet cell. """
         log.info( u'%s -- starting update on error' % self.log_identifier )
+        self._get_ingestion_status_column_int( worksheet )
+        # message_cell =
         log.info( u'%s -- ending script' % self.log_identifier )
         sys.exit()
+
+    def _get_ingestion_status_column_int():
+        """ Returns integer for ingestion_status column. """
+        for i in range( 1, 20 ):
+            column_title = worksheet.cell( 1, i ).value  # cell( row, column )
+            if self.ingestion_status_column_name in column_title:  # column_title may contain a colon
+                ingestion_status_column_int = i
+                break
+        log.debug( u'%s -- ingestion_status_column_int, `%s`' % (self.log_identifier, ingestion_status_column_int) )
+        if not ingestion_status_column_int:
+            raise Exception( "Unable to determine ingestion-status column." )
+        return
 
     # end class SheetUpdater
 
