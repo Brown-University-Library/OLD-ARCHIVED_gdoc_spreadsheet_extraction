@@ -93,64 +93,6 @@ overall_validity_data = validator.runOverallValidity( validity_result_list )
 logger.info( u'%s -- overall_validity_data, `%s`' % (log_identifier, overall_validity_data) )
 
 
-
-
-# # find a row that needs processing
-# gdata_target_row_data = utility_code.findRowToProcess( gdata_row_feed, identifier )
-# utility_code.updateLog( message=u'C: gdata_target_row_data is: %s' % gdata_target_row_data, identifier=identifier )
-# if gdata_target_row_data[ 'status' ] == 'no target row found':
-#   utility_code.updateLog( message=u'C: no target row found; ending script', identifier=identifier )
-#   sys.exit()
-
-# # convert row fields to a dict-list
-# row_data_dict = utility_code.makeRowDataDict( gdata_target_row_data['gdata_target_row'], identifier )
-# utility_code.updateLog( message=u'C: row_data_dict is: %s' % row_data_dict, identifier=identifier )
-
-# # validate -- additional_rights
-# vresult_additional_rights = utility_code.validateAdditionalRights( row_data_dict['additional_rights'], identifier )
-# utility_code.updateLog( message=u'C: vresult_additional_rights is: %s' % vresult_additional_rights, identifier=identifier )
-
-# # validate -- by
-# vresult_by = utility_code.validateBy( row_data_dict['by'], identifier )
-# utility_code.updateLog( message=u'C: vresult_by is: %s' % vresult_by, identifier=identifier )
-
-# # validate -- create_date
-# vresult_create_date = utility_code.validateCreateDate( row_data_dict['create_date'], identifier )
-# utility_code.updateLog( message=u'C: vresult_create_date is: %s' % vresult_create_date, identifier=identifier )
-
-# # validate -- description
-# vresult_description = utility_code.validateDescription( row_data_dict['description'], identifier )
-# utility_code.updateLog( message=u'C: vresult_description is: %s' % vresult_description, identifier=identifier )
-
-# # validate -- file_path
-# default_filepath_directory = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['default_filepath_directory']
-# vresult_file_path = utility_code.validateFilePath( row_data_dict['file_path'], default_filepath_directory, identifier )
-# utility_code.updateLog( message=u'C: vresult_file_path is: %s' % vresult_file_path, identifier=identifier )
-
-# # validate -- folders
-# spreadsheet_folder_api_identity = settings.SPREADSHEET_ACCESS_DICT[spreadsheet_name + '_dict']['permitted_folder_api_add_items_identity']
-# vresult_folders = utility_code.validateFolders( row_data_dict['folders'], spreadsheet_folder_api_identity, identifier )
-# utility_code.updateLog( message=u'C: vresult_folders is: %s' % vresult_folders, identifier=identifier )
-
-# # validate -- keywords
-# vresult_keywords = utility_code.validateKeywords( row_data_dict['keywords'], identifier )
-# utility_code.updateLog( message=u'C: vresult_keywords is: %s' % vresult_keywords, identifier=identifier )
-
-# # validate -- title
-# vresult_title = utility_code.validateTitle( row_data_dict['title'], identifier )
-# utility_code.updateLog( message=u'C: vresult_title is: %s' % vresult_title, identifier=identifier )
-
-# # check overall validity
-# validity_result_list = [
-#   vresult_additional_rights, vresult_by,
-#   vresult_create_date, vresult_description,
-#   vresult_file_path, vresult_folders,
-#   vresult_keywords, vresult_title
-#   ]
-# overall_validity_data = utility_code.runOverallValidity( validity_result_list, identifier )
-# utility_code.updateLog( message=u'C: overall_validity_data is: %s' % overall_validity_data, identifier=identifier )
-
-
 1/0
 
 
