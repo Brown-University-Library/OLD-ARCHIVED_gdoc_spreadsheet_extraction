@@ -15,7 +15,8 @@ class SheetUpdater( object ):
     def __init__( self, log_identifier ):
         self.log_identifier = log_identifier
 
-    def update_on_error( self ):
+    def update_on_error( self, worksheet, error_data ):
+        """ Pulls error message from error_data & updates worksheet cell. """
         log.info( u'%s -- starting update on error' % self.log_identifier )
         log.info( u'%s -- ending script' % self.log_identifier )
         sys.exit()

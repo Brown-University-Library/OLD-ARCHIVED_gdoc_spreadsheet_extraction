@@ -16,7 +16,7 @@
 
 import datetime, logging, os, random, sys
 # from gdoc_spreadsheet_extraction import utility_code
-from gdoc_spreadsheet_extraction.utility_code import SheetGrabber, Validator
+from gdoc_spreadsheet_extraction.utility_code import SheetGrabber, Validator, SheetUpdater
 
 
 ## settings
@@ -37,6 +37,7 @@ logger.info( u'%s -- log_identifier set' % log_identifier )
 ## instances
 sheet_grabber = SheetGrabber( log_identifier )
 validator = Validator( log_identifier )
+sheet_updater = SheetUpdater( log_identifier )
 
 
 ## work
@@ -90,30 +91,41 @@ validity_result_list = [
   vresult_keywords, vresult_title
   ]
 overall_validity_data = validator.runOverallValidity( validity_result_list )
+logger.info( u'%s -- validity_result_list, `%s`' % (log_identifier, validity_result_list) )
 logger.info( u'%s -- overall_validity_data, `%s`' % (log_identifier, overall_validity_data) )
 
 
 1/0
 
 
-# update spreadsheet if necessary
 if overall_validity_data['status'] == 'FAILURE':
-  # prepare replacement-dict
-  row_replacement_data = utility_code.prepareRowReplacementDictOnError(
-    gdata_row_object=gdata_target_row_data['gdata_target_row'],
-    error_message=overall_validity_data['message'],
-    identifier=identifier )
-  utility_code.updateLog( message=u'C: row_replacement_data is: %s' % row_replacement_data, identifier=identifier )
-  # update spreadsheet
-  spreadsheet_update_data = utility_code.updateSpreadsheet(
-    gdata_client=gdata_client,
-    gdata_row_object=gdata_target_row_data['gdata_target_row'],
-    replacement_dict=row_replacement_data['replacement_dict'],
-    identifier=identifier )
-  utility_code.updateLog( message=u'C: spreadsheet_update_data is: %s' % spreadsheet_update_data, identifier=identifier )
-  # quit
-  utility_code.updateLog( message=u'C: ending script after spreadsheet error update', identifier=identifier )
-  sys.exit()
+    logger.info( u'%s -- failure update starting' % log_identifier )
+    sheet_updater.update_on_error( worksheet=worksheet, error_data=overall_validity_data )
+    logger.info( u'%s -- failure update end -- shouldn\'t get here because called class exits script' % log_identifier )
+    pass
+
+# # update spreadsheet if necessary
+# if overall_validity_data['status'] == 'FAILURE':
+#   # prepare replacement-dict
+#   row_replacement_data = utility_code.prepareRowReplacementDictOnError(
+#     gdata_row_object=gdata_target_row_data['gdata_target_row'],
+#     error_message=overall_validity_data['message'],
+#     identifier=identifier )
+#   utility_code.updateLog( message=u'C: row_replacement_data is: %s' % row_replacement_data, identifier=identifier )
+#   # update spreadsheet
+#   spreadsheet_update_data = utility_code.updateSpreadsheet(
+#     gdata_client=gdata_client,
+#     gdata_row_object=gdata_target_row_data['gdata_target_row'],
+#     replacement_dict=row_replacement_data['replacement_dict'],
+#     identifier=identifier )
+#   utility_code.updateLog( message=u'C: spreadsheet_update_data is: %s' % spreadsheet_update_data, identifier=identifier )
+#   # quit
+#   utility_code.updateLog( message=u'C: ending script after spreadsheet error update', identifier=identifier )
+#   sys.exit()
+
+
+1/0
+
 
 # gogogo!
 utility_code.updateLog( message=u'C: ready to ingest!', identifier=identifier )
