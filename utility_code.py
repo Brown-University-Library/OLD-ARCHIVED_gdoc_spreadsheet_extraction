@@ -222,7 +222,7 @@ class Validator( object ):
                   break
               # folder found, check if spreadsheet user is permitted to add items
               if return_dict == 'init':
-                if spreadsheet_folder_api_identity in folder_info['add_items']:
+                if self.PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY in folder_info['add_items']:
                   normalized_cell_string = '%s+%s#%s' % ( normalized_cell_string, folder_name, folder_id )
                 else:
                   return_dict = { 'status': 'FAILURE', 'message': 'not permitted to add items to specified folder' }
