@@ -247,7 +247,7 @@ class Validator( object ):
           - Called by: controller.py
           '''
           try:
-            updateLog( message=u'validateKeywords() cell_data is: %s' % cell_data, identifier=identifier )
+            log.debug( u'%s -- cell_data, `%s`' % (self.log_identifier, cell_data) )
             # ensure not empty
             if len( cell_data.strip() ) == 0:
               return_dict = { 'status': 'FAILURE', 'message': 'at least one keyword is required' }
