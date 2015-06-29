@@ -207,7 +207,7 @@ class Validator( object ):
                 folder_api_url_root = u'%s%s/' % ( self.FOLDER_API_URL, folder_id )
                 log.debug( u'%s -- folder_api_url_root, `%s`' % (self.log_identifier, folder_api_url_root) )
                 params = { 'identities': json.dumps([self.PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY]) }
-                r = requests.get( folder_api_url_root, params )
+                r = requests.get( folder_api_url_root, params, verify=False )
                 log.debug( u'%s -- requests url, `%s`' % (self.log_identifier, r.url) )
                 if not r.ok:  # forbidden or not found
                   log.debug( u'%s -- error from collection api, `%s - %s`' % (self.log_identifier, r.status_code, r.text) )
