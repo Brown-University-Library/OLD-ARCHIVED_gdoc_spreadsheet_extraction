@@ -9,6 +9,20 @@ from oauth2client.client import SignedJwtAssertionCredentials
 log = logging.getLogger(__name__)
 
 
+class SheetUpdater( object ):
+    """ Manages updates to spreadsheet on error and success. """
+
+    def __init__( self, log_identifier ):
+        self.log_identifier = log_identifier
+
+    def update_on_error( self ):
+        log.info( u'%s -- starting update on error' % self.log_identifier )
+        log.info( u'%s -- ending script' % self.log_identifier )
+        sys.exit()
+
+    # end class SheetUpdater
+
+
 class Validator( object ):
     """ Manages validation. """
 
@@ -366,6 +380,7 @@ class SheetGrabber( object ):
                 self.original_ready_row_dct = row_dct
                 displayed_row_num = i + 2
                 self.original_ready_row_num = displayed_row_num
+                log.debug( u'%s -- self.original_ready_row_num, `%s`' % (self.log_identifier, self.original_ready_row_num) )
                 break
         log.debug( u'%s -- find-ready-row() complete; `%s`' % (self.log_identifier, pprint.pformat(self.original_ready_row_dct)) )
         return self.original_ready_row_dct
