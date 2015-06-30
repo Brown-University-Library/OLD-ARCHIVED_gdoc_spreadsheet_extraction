@@ -36,7 +36,7 @@ class SheetUpdater( object ):
     def get_column_int( self, worksheet, column_name ):
         """ Returns integer for given column_name.
             Called by update_on_error() """
-        ( column_int, error_message ) = ( None, u'Unable to determine column integer for column name, ``.' % column_name )
+        ( column_int, error_message ) = ( None, u'Unable to determine column integer for column name, `%s`.' % column_name )
         for i in range( 1, 20 ):
             column_title = worksheet.cell( 1, i ).value  # cell( row, column )
             if column_name in column_title:  # column_title may contain a colon
