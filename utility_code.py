@@ -475,7 +475,7 @@ def ingestItem( validity_result_list, log_identifier ):
         filepath = u''
         for entry in validity_result_list:
             if entry[u'parameter_label'] == u'file_path':
-                filepath = entry[u'normalized_cell_data'] )
+                filepath = entry[u'normalized_cell_data']
             else:
                 params[ entry[u'parameter_label'] ] = entry[u'normalized_cell_data']
         log.debug( u'%s -- params, `%s`' % (log_identifier, pprint.pformat(params)) )
