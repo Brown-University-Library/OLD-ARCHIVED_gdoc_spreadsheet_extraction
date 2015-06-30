@@ -9,14 +9,30 @@ log = logging.getLogger(__name__)
 
 
 class SheetUpdater( object ):
-    """ Manages updates to spreadsheet on error and success. """
+    """ Manages updates to spreadsheet on error and success.
+        TODO: consider refactoring make-new-message defs, and update defs. """
 
     def __init__( self, log_identifier ):
         self.log_identifier = log_identifier
+        self.HOST_DOMAIN_NAME = os.environ['ASSMNT__HOST_DOMAIN_NAME']
         self.ingestion_ready_column_name = u'Ready'
         self.ingestion_status_column_name = u'IngestionStatus'
         self.ready_column_int = None
         self.ingestion_status_column_int = None
+
+    def update_on_success( self, worksheet, original_data_dct, row_num, pid ):
+        """ Updates ready-column and message column.
+            Called by controller. """
+        log.info( u'%s -- starting update_on_success()' % self.log_identifier )
+        self.ready_column_int = self.get_column_int( worksheet, self.ingestion_ready_column_name )
+        self.ingestion_status_column_int = self.get_column_int( worksheet, self.ingestion_status_column_name )
+        worksheet.update_cell(
+            row_num, self.ready_column_int, u'Ingested' )
+        new_message = self.make_new_success_message( original_data_dct, pid )
+        worksheet.update_cell(
+            row_num, self.ingestion_status_column_int, new_message )
+        log.info( u'%s -- ending script' % self.log_identifier )
+        sys.exit()
 
     def update_on_error( self, worksheet, original_data_dct, row_num, error_data ):
         """ Pulls error message from error_data & updates worksheet cell.
@@ -26,7 +42,7 @@ class SheetUpdater( object ):
         self.ingestion_status_column_int = self.get_column_int( worksheet, self.ingestion_status_column_name )
         worksheet.update_cell(
             row_num, self.ready_column_int, u'Error' )
-        new_message = self.make_new_message( original_data_dct, error_data )
+        new_message = self.make_new_error_message( original_data_dct, error_data )
         worksheet.update_cell(
             row_num, self.ingestion_status_column_int, new_message )
         log.info( u'%s -- ending script' % self.log_identifier )
@@ -47,23 +63,21 @@ class SheetUpdater( object ):
             raise Exception( error_message )
         return column_int
 
-    # def get_ingestion_status_column_int( self, worksheet ):
-    #     """ Returns integer for ingestion_status column.
-    #         Called by update_on_error() """
-    #     for i in range( 1, 20 ):
-    #         column_title = worksheet.cell( 1, i ).value  # cell( row, column )
-    #         if self.ingestion_status_column_name in column_title:  # column_title may contain a colon
-    #             self.ingestion_status_column_int = i
-    #             break
-    #     log.debug( u'%s -- ingestion_status_column_int, `%s`' % (self.log_identifier, self.ingestion_status_column_int) )
-    #     if not self.ingestion_status_column_int:
-    #         message = u'Unable to determine ingestion-status column.'
-    #         log.error( u'%s -- raising exception, `%s`' % (self.log_identifier, message) )
-    #         raise Exception( message )
-    #     return
+    def make_new_success_message( self, original_data_dct, pid ):
+        """ Adds date-stamped new success message containing bdr-link to beginning of old message & returns it.
+            Called by update_on_success() """
+        previous_message = original_data_dct['IngestionStatus']
+        now = unicode( datetime.datetime.now() )[0:19]
+        message = u'Item ingested, and is accessable at https://%s/studio/item/%s/' % ( self.HOST_DOMAIN_NAME, pid )
+        if previous_message == None or len( previous_message.strip() ) == 0:
+            new_message = u'%s -- %s\n----' % ( now, message )
+        else:
+            new_message = u'%s -- %s\n----\n\n%s' % ( now, message, previous_message )
+        log.debug( u'%s -- new_message, `%s`' % (self.log_identifier, new_message) )
+        return new_message
 
-    def make_new_message( self, original_data_dct, error_data ):
-        """ Adds date-stamped new_message to beginning of old message & returns it.
+    def make_new_error_message( self, original_data_dct, error_data ):
+        """ Adds date-stamped new error message to beginning of old message & returns it.
             Called by update_on_error() """
         previous_message = original_data_dct['IngestionStatus']
         now = unicode( datetime.datetime.now() )[0:19]

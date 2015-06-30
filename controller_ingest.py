@@ -109,31 +109,28 @@ logger.info( u'%s -- ready to ingest' % log_identifier )
 ingestion_result_data = utility_code.ingestItem( validity_result_list, log_identifier )
 logger.info( u'%s -- ingestion_result_data, `%s`' % (log_identifier, ingestion_result_data) )
 
-
-1/0
-
-
 # update row after ingestion
 if ingestion_result_data['status'] == 'success':
-  row_replacement_data = utility_code.prepareRowReplacementDictOnSuccess(
-    gdata_row_object=gdata_target_row_data['gdata_target_row'],
-    pid=ingestion_result_data['post_json_dict']['pid'],
-    identifier=identifier )
+    logger.info( u'%s -- updating spreadsheet on success' % log_identifier )
+    pid = ingestion_result_data['post_json_dict']['pid']
+    logger.debug( u'%s -- pid, `%s`' % (log_identifier, pid) )
+    sheet_updater.update_on_success(
+        worksheet=sheet_grabber.worksheet,  # for actually updating the cell
+        original_data_dct=sheet_grabber.original_ready_row_dct,
+        row_num=sheet_grabber.original_ready_row_num,
+        pid=pid
+        )
 else:
-  row_replacement_data = utility_code.prepareRowReplacementDictOnError(
-    gdata_row_object=gdata_target_row_data['gdata_target_row'],
-    error_message=u'data valid, but problem ingesting item; error logged',
-    identifier=identifier )
-utility_code.updateLog( message=u'C: row_replacement_data is: %s' % row_replacement_data, identifier=identifier )
-# final update spreadsheet
-final_spreadsheet_update_data = utility_code.updateSpreadsheet(
-  gdata_client=gdata_client,
-  gdata_row_object=gdata_target_row_data['gdata_target_row'],
-  replacement_dict=row_replacement_data['replacement_dict'],
-  identifier=identifier )
-utility_code.updateLog( message=u'C: final_spreadsheet_update_data is: %s' % final_spreadsheet_update_data, identifier=identifier )
+    logger.info( u'%s -- updating spreadsheet on ingestion error' % log_identifier )
+    sheet_updater.update_on_error(
+        worksheet=sheet_grabber.worksheet,  # for actually updating the cell
+        original_data_dct=sheet_grabber.original_ready_row_dct,
+        row_num=sheet_grabber.original_ready_row_num,
+        error_data={ u'message': u'data valid, but problem ingesting item; error logged' }
+        )
+
 # quit
-utility_code.updateLog( message=u'C: ending script', identifier=identifier )
+logger.info( u'%s -- spreadsheet updated, ending script -- shouldn\'t get here because called class exists script' % log_identifier )
 sys.exit()
 
 # [END]
