@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime, json, logging, os, pprint, sys
-import gspread
-import requests
+import gspread,requests
 from oauth2client.client import SignedJwtAssertionCredentials
 
 
@@ -474,16 +473,15 @@ def ingestItem( validity_result_list, identifier ):
         params[u'identity'] = IDENTITY
         params[u'authorization_code'] = KEY
         for entry in validity_result_list:
-          if entry[u'parameter_label'] == u'file_path':
-            params[u'actual_file'] = open( entry[u'normalized_cell_data'] )
-          else:
-            params[ entry[u'parameter_label'] ] = entry[u'normalized_cell_data']
+            if entry[u'parameter_label'] == u'file_path':
+                params[u'actual_file'] = open( entry[u'normalized_cell_data'] )
+            else:
+                params[ entry[u'parameter_label'] ] = entry[u'normalized_cell_data']
         log.debug( u'%s -- params, `%s`' % (self.log_identifier, pprint.pformat(params)) )
         ## post
-        try:
         r = requests.post( URL, payload=params )
-        log.debug( u'%s -- r.status_code, `%s`' % (self.log_identifier, r.status_code )
-        log.debug( u'%s -- r.text, `%s`' % (self.log_identifier, r.text )
+        log.debug( u'%s -- r.status_code, `%s`' % (self.log_identifier, r.status_code) )
+        log.debug( u'%s -- r.text, `%s`' % (self.log_identifier, r.text) )
         ## return
         result_dct = r.json()
         if result_dct['post_result'] == u'SUCCESS':
@@ -491,7 +489,7 @@ def ingestItem( validity_result_list, identifier ):
         else:
             return_dict = { u'status': 'FAILURE', u'message': u'ingestion problem; error logged' }
     except Exception as e:
-        log.error( u'%s -- Exception on ingest, `%s`' % (self.log_identifier, unicode(repr(e)) )
+        log.error( u'%s -- Exception on ingest, `%s`' % (self.log_identifier, unicode(repr(e))) )
         return_dict = { u'status': u'FAILURE', u'message': u'ingest failed; error logged' }
     return return_dict
 
