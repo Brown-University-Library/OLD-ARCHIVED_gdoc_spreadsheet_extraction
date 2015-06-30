@@ -18,24 +18,42 @@ class SheetUpdater( object ):
         self.ingestion_status_column_int = None
 
     def update_on_error( self, worksheet, error_data ):
-        """ Pulls error message from error_data & updates worksheet cell. """
-        log.info( u'%s -- starting update on error' % self.log_identifier )
-        self._get_ingestion_status_column_int( worksheet )
-        # message_cell =
+        """ Pulls error message from error_data & updates worksheet cell.
+            Called by controller. """
+        log.info( u'%s -- starting update_on_error()' % self.log_identifier )
+        self.get_ingestion_status_column_int( worksheet )
+        new_message = self.make_new_message( worksheet, error_data )
+        worksheet.update_cell(
+            worksheet.original_ready_row_num, self.ingestion_status_column_int, new_message )
         log.info( u'%s -- ending script' % self.log_identifier )
         sys.exit()
 
-    def _get_ingestion_status_column_int():
-        """ Returns integer for ingestion_status column. """
+    def get_ingestion_status_column_int():
+        """ Returns integer for ingestion_status column.
+            Called by update_on_error() """
         for i in range( 1, 20 ):
             column_title = worksheet.cell( 1, i ).value  # cell( row, column )
             if self.ingestion_status_column_name in column_title:  # column_title may contain a colon
-                ingestion_status_column_int = i
+                self.ingestion_status_column_int = i
                 break
         log.debug( u'%s -- ingestion_status_column_int, `%s`' % (self.log_identifier, ingestion_status_column_int) )
         if not ingestion_status_column_int:
-            raise Exception( "Unable to determine ingestion-status column." )
+            message = u'Unable to determine ingestion-status column.'
+            log.error( u'%s -- raising exception, `%s`' % (self.log_identifier, message) )
+            raise Exception( message )
         return
+
+    def make_new_message( self, worksheet, error_data ):
+        """ Adds date-stamped new_message to beginning of old message & returns it.
+            Called by update_on_error() """
+        previous_message = worksheet.original_ready_row_dct['IngestionStatus']
+        now = unicode( datetime.datetime.now() )[0:19]
+        if previous_message == None or len( previous_message.strip() ) == 0:
+            new_message = u'%s -- %s\n----' % ( now, error_data['message'] )
+        else:
+            new_message = u'%s -- %s\n----\n\n%s' % ( now, error_data['message'], previous_message )
+        log.debug( u'%s -- new_message, `%s`' % (self.log_identifier, new_message) )
+        return new_message
 
     # end class SheetUpdater
 
