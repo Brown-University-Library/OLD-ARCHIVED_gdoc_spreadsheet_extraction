@@ -14,34 +14,54 @@ class SheetUpdater( object ):
 
     def __init__( self, log_identifier ):
         self.log_identifier = log_identifier
+        self.ingestion_ready_column_name = u'Ready'
         self.ingestion_status_column_name = u'IngestionStatus'
+        self.ready_column_int = None
         self.ingestion_status_column_int = None
 
     def update_on_error( self, worksheet, original_data_dct, row_num, error_data ):
         """ Pulls error message from error_data & updates worksheet cell.
             Called by controller. """
         log.info( u'%s -- starting update_on_error()' % self.log_identifier )
-        self.get_ingestion_status_column_int( worksheet )
+        self.ready_column_int = get_column_int( worksheet, self.ingestion_ready_column_name )
+        self.ingestion_status_column_int = get_column_int( worksheet, self.ingestion_status_column_name )
+        worksheet.update_cell(
+            row_num, self.ready_column_int, u'Error' )
         new_message = self.make_new_message( original_data_dct, error_data )
         worksheet.update_cell(
             row_num, self.ingestion_status_column_int, new_message )
         log.info( u'%s -- ending script' % self.log_identifier )
         sys.exit()
 
-    def get_ingestion_status_column_int( self, worksheet ):
-        """ Returns integer for ingestion_status column.
+    def get_column_int( self, worksheet, column_name ):
+        """ Returns integer for given column_name.
             Called by update_on_error() """
+        ( column_int, error_message ) = ( None, u'Unable to determine column integer for column name, ``.' % column_name )
         for i in range( 1, 20 ):
             column_title = worksheet.cell( 1, i ).value  # cell( row, column )
-            if self.ingestion_status_column_name in column_title:  # column_title may contain a colon
-                self.ingestion_status_column_int = i
+            if column_name in column_title:  # column_title may contain a colon
+                column_int = i
                 break
-        log.debug( u'%s -- ingestion_status_column_int, `%s`' % (self.log_identifier, self.ingestion_status_column_int) )
-        if not self.ingestion_status_column_int:
-            message = u'Unable to determine ingestion-status column.'
-            log.error( u'%s -- raising exception, `%s`' % (self.log_identifier, message) )
-            raise Exception( message )
-        return
+        log.debug( u'%s -- column_int, `%s`' % (self.log_identifier, column_int) )
+        if not column_int:
+            log.error( u'%s -- raising exception, `%s`' % (self.log_identifier, error_message) )
+            raise Exception( error_message )
+        return column_int
+
+    # def get_ingestion_status_column_int( self, worksheet ):
+    #     """ Returns integer for ingestion_status column.
+    #         Called by update_on_error() """
+    #     for i in range( 1, 20 ):
+    #         column_title = worksheet.cell( 1, i ).value  # cell( row, column )
+    #         if self.ingestion_status_column_name in column_title:  # column_title may contain a colon
+    #             self.ingestion_status_column_int = i
+    #             break
+    #     log.debug( u'%s -- ingestion_status_column_int, `%s`' % (self.log_identifier, self.ingestion_status_column_int) )
+    #     if not self.ingestion_status_column_int:
+    #         message = u'Unable to determine ingestion-status column.'
+    #         log.error( u'%s -- raising exception, `%s`' % (self.log_identifier, message) )
+    #         raise Exception( message )
+    #     return
 
     def make_new_message( self, original_data_dct, error_data ):
         """ Adds date-stamped new_message to beginning of old message & returns it.
