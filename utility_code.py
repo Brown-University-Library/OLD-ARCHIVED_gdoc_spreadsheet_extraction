@@ -479,7 +479,7 @@ def ingestItem( validity_result_list, log_identifier ):
                 params[ entry[u'parameter_label'] ] = entry[u'normalized_cell_data']
         log.debug( u'%s -- params, `%s`' % (log_identifier, pprint.pformat(params)) )
         ## post
-        r = requests.post( URL, payload=params )
+        r = requests.post( URL, data=params )
         log.debug( u'%s -- r.status_code, `%s`' % (log_identifier, r.status_code) )
         log.debug( u'%s -- r.text, `%s`' % (log_identifier, r.text) )
         ## return
