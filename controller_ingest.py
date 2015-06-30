@@ -104,11 +104,6 @@ if overall_validity_data['status'] == 'FAILURE':
         error_data=overall_validity_data )
     logger.info( u'%s -- failure update end -- shouldn\'t get here because called class exits script' % log_identifier )
 
-
-
-1/0
-
-
 # gogogo!
 logger.info( u'%s -- ready to ingest' % log_identifier )
 ingestion_result_data = utility_code.ingestItem( validity_result_list, identifier )
