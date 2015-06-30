@@ -23,8 +23,8 @@ class SheetUpdater( object ):
         """ Pulls error message from error_data & updates worksheet cell.
             Called by controller. """
         log.info( u'%s -- starting update_on_error()' % self.log_identifier )
-        self.ready_column_int = get_column_int( worksheet, self.ingestion_ready_column_name )
-        self.ingestion_status_column_int = get_column_int( worksheet, self.ingestion_status_column_name )
+        self.ready_column_int = self.get_column_int( worksheet, self.ingestion_ready_column_name )
+        self.ingestion_status_column_int = self.get_column_int( worksheet, self.ingestion_status_column_name )
         worksheet.update_cell(
             row_num, self.ready_column_int, u'Error' )
         new_message = self.make_new_message( original_data_dct, error_data )
