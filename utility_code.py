@@ -467,8 +467,8 @@ def ingestItem( validity_result_list, log_identifier ):
     URL = os.environ['ASSMNT__ITEM_API_URL']
     IDENTITY = os.environ['ASSMNT__ITEM_API_IDENTITY']
     KEY = os.environ['ASSMNT__ITEM_API_KEY']
-    ## params
     try:
+        ## params
         params = {}
         params[u'identity'] = IDENTITY
         params[u'authorization_code'] = KEY
@@ -485,15 +485,13 @@ def ingestItem( validity_result_list, log_identifier ):
         ## return
         result_dct = r.json()
         if result_dct['post_result'] == u'SUCCESS':
-            return_dict = { u'status': u'success', u'post_json_dict': post_json_dict }
+            return_dict = { u'status': u'success', u'post_json_dict': result_dct }
         else:
             return_dict = { u'status': 'FAILURE', u'message': u'ingestion problem; error logged' }
     except Exception as e:
         log.error( u'%s -- Exception on ingest, `%s`' % (log_identifier, unicode(repr(e))) )
         return_dict = { u'status': u'FAILURE', u'message': u'ingest failed; error logged' }
     return return_dict
-
-  # end def ingestItem()
 
 
 # def ingestItem( validity_result_list, identifier ):
