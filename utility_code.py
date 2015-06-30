@@ -474,12 +474,14 @@ def ingestItem( validity_result_list, log_identifier ):
         params[u'authorization_code'] = KEY
         for entry in validity_result_list:
             if entry[u'parameter_label'] == u'file_path':
-                params[u'actual_file'] = open( entry[u'normalized_cell_data'], 'rb' )
+                # params[u'actual_file'] = open( entry[u'normalized_cell_data'], 'rb' )
+                pass
             else:
                 params[ entry[u'parameter_label'] ] = entry[u'normalized_cell_data']
         log.debug( u'%s -- params, `%s`' % (log_identifier, pprint.pformat(params)) )
         ## post
-        r = requests.post( URL, data=params, verify=False )
+        files = { 'actual_file': open(entry[u'normalized_cell_data'], 'rb') }
+        r = requests.post( URL, data=params, files=files verify=False )
         log.debug( u'%s -- r.status_code, `%s`' % (log_identifier, r.status_code) )
         log.debug( u'%s -- r.text, `%s`' % (log_identifier, r.text) )
         ## return
