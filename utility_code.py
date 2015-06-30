@@ -474,7 +474,7 @@ def ingestItem( validity_result_list, log_identifier ):
         params[u'authorization_code'] = KEY
         for entry in validity_result_list:
             if entry[u'parameter_label'] == u'file_path':
-                params[u'actual_file'] = open( entry[u'normalized_cell_data'] )
+                params[u'actual_file'] = open( entry[u'normalized_cell_data'], 'rb' )
             else:
                 params[ entry[u'parameter_label'] ] = entry[u'normalized_cell_data']
         log.debug( u'%s -- params, `%s`' % (log_identifier, pprint.pformat(params)) )
@@ -492,6 +492,39 @@ def ingestItem( validity_result_list, log_identifier ):
         log.error( u'%s -- Exception on ingest, `%s`' % (log_identifier, unicode(repr(e))) )
         return_dict = { u'status': u'FAILURE', u'message': u'ingest failed; error logged' }
     return return_dict
+
+
+# def ingestItem( validity_result_list, log_identifier ):
+#     """ Posts data to item-api
+#         Called by controller. """
+#     URL = os.environ['ASSMNT__ITEM_API_URL']
+#     IDENTITY = os.environ['ASSMNT__ITEM_API_IDENTITY']
+#     KEY = os.environ['ASSMNT__ITEM_API_KEY']
+#     try:
+#         ## params
+#         params = {}
+#         params[u'identity'] = IDENTITY
+#         params[u'authorization_code'] = KEY
+#         for entry in validity_result_list:
+#             if entry[u'parameter_label'] == u'file_path':
+#                 params[u'actual_file'] = open( entry[u'normalized_cell_data'] )
+#             else:
+#                 params[ entry[u'parameter_label'] ] = entry[u'normalized_cell_data']
+#         log.debug( u'%s -- params, `%s`' % (log_identifier, pprint.pformat(params)) )
+#         ## post
+#         r = requests.post( URL, data=params, verify=False )
+#         log.debug( u'%s -- r.status_code, `%s`' % (log_identifier, r.status_code) )
+#         log.debug( u'%s -- r.text, `%s`' % (log_identifier, r.text) )
+#         ## return
+#         result_dct = r.json()
+#         if result_dct['post_result'] == u'SUCCESS':
+#             return_dict = { u'status': u'success', u'post_json_dict': result_dct }
+#         else:
+#             return_dict = { u'status': 'FAILURE', u'message': u'ingestion problem; error logged' }
+#     except Exception as e:
+#         log.error( u'%s -- Exception on ingest, `%s`' % (log_identifier, unicode(repr(e))) )
+#         return_dict = { u'status': u'FAILURE', u'message': u'ingest failed; error logged' }
+#     return return_dict
 
 
 # def ingestItem( validity_result_list, identifier ):
