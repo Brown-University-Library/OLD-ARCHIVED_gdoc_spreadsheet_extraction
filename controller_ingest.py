@@ -46,7 +46,7 @@ sheet_updater = SheetUpdater( log_identifier )
 spreadsheet = sheet_grabber.get_spreadsheet()
 
 ## get worksheet
-worksheet = sheet_grabber.get_worksheet()
+sheet_grabber.get_worksheet()
 
 ## find ready row
 ready_row = sheet_grabber.find_ready_row()
@@ -94,15 +94,15 @@ overall_validity_data = validator.runOverallValidity( validity_result_list )
 logger.info( u'%s -- validity_result_list, `%s`' % (log_identifier, validity_result_list) )
 logger.info( u'%s -- overall_validity_data, `%s`' % (log_identifier, overall_validity_data) )
 
-
-1/0
-
-
+# update spreadsheet if necessary
 if overall_validity_data['status'] == 'FAILURE':
     logger.info( u'%s -- failure update starting' % log_identifier )
-    sheet_updater.update_on_error( worksheet=worksheet, error_data=overall_validity_data )
+    sheet_updater.update_on_error(
+        worksheet=sheet_grabber.worksheet,  # for actually updating the cell
+        original_data_dct=sheet_grabber.original_ready_row_dct,
+        row_num=sheet_grabber.original_ready_row_num,
+        error_data=overall_validity_data )
     logger.info( u'%s -- failure update end -- shouldn\'t get here because called class exits script' % log_identifier )
-    pass
 
 # # update spreadsheet if necessary
 # if overall_validity_data['status'] == 'FAILURE':
