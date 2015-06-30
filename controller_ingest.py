@@ -104,33 +104,19 @@ if overall_validity_data['status'] == 'FAILURE':
         error_data=overall_validity_data )
     logger.info( u'%s -- failure update end -- shouldn\'t get here because called class exits script' % log_identifier )
 
-# # update spreadsheet if necessary
-# if overall_validity_data['status'] == 'FAILURE':
-#   # prepare replacement-dict
-#   row_replacement_data = utility_code.prepareRowReplacementDictOnError(
-#     gdata_row_object=gdata_target_row_data['gdata_target_row'],
-#     error_message=overall_validity_data['message'],
-#     identifier=identifier )
-#   utility_code.updateLog( message=u'C: row_replacement_data is: %s' % row_replacement_data, identifier=identifier )
-#   # update spreadsheet
-#   spreadsheet_update_data = utility_code.updateSpreadsheet(
-#     gdata_client=gdata_client,
-#     gdata_row_object=gdata_target_row_data['gdata_target_row'],
-#     replacement_dict=row_replacement_data['replacement_dict'],
-#     identifier=identifier )
-#   utility_code.updateLog( message=u'C: spreadsheet_update_data is: %s' % spreadsheet_update_data, identifier=identifier )
-#   # quit
-#   utility_code.updateLog( message=u'C: ending script after spreadsheet error update', identifier=identifier )
-#   sys.exit()
 
 
 1/0
 
 
 # gogogo!
-utility_code.updateLog( message=u'C: ready to ingest!', identifier=identifier )
+logger.info( u'%s -- ready to ingest' % log_identifier )
 ingestion_result_data = utility_code.ingestItem( validity_result_list, identifier )
-utility_code.updateLog( message=u'C: ingestion_result_data is: %s' % ingestion_result_data, identifier=identifier )
+logger.info( u'%s -- ingestion_result_data, `%s`' % (log_identifier, ingestion_result_data) )
+
+
+1/0
+
 
 # update row after ingestion
 if ingestion_result_data['status'] == 'success':
