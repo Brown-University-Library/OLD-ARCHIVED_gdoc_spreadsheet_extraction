@@ -8,7 +8,7 @@
         - validates data
             - halts if data is invalid and updates spreadsheet with errors
         - calls ingestion api to ingest the item into the repository
-        - updates the spreadsheet with link repository link
+        - updates the spreadsheet with repository link
 
 - code contact: birkin_diana@brown.edu
 
