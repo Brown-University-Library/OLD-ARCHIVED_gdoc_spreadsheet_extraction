@@ -430,7 +430,8 @@ class SheetGrabber( object ):
             log.debug( u'%s -- spreadsheet grabbed, `%s`' % (self.log_identifier, self.spreadsheet) )
             return self.spreadsheet
         except Exception as e:
-            message = u'Problem grabbing spreadsheet; exception, `%s`' % unicode(repr(e))
+            import traceback
+            message = 'Problem grabbing spreadsheet; exception, `%s`' % traceback.format_exc()
             log.error( message )
             raise Exception( message )
 
