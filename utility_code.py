@@ -45,8 +45,8 @@ class SheetUpdater( object ):
         new_message = self.make_new_error_message( original_data_dct, error_data )
         worksheet.update_cell(
             row_num, self.ingestion_status_column_int, new_message )
-        log.info( u'%s -- ending script' % self.log_identifier )
-        sys.exit()
+        log.info( u'%s -- raising exception' % self.log_identifier )
+        raise Exception('exception - see assessments log')
 
     def get_column_int( self, worksheet, column_name ):
         """ Returns integer for given column_name.
