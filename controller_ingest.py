@@ -106,7 +106,7 @@ if overall_validity_data['status'] == 'FAILURE':
 
 # gogogo!
 logger.info( u'%s -- ready to ingest' % log_identifier )
-ingestion_result_data = utility_code.ingestItem( validity_result_list, log_identifier )
+ingestion_result_data = utility_code.ingestItem(validity_result_list)
 logger.info( u'%s -- ingestion_result_data, `%s`' % (log_identifier, ingestion_result_data) )
 
 # update row after ingestion

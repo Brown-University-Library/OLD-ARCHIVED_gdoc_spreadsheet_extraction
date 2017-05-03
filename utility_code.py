@@ -476,7 +476,7 @@ class SheetGrabber( object ):
     # end class SheetGrabber
 
 
-def ingestItem( validity_result_list, log_identifier ):
+def ingestItem(validity_result_list):
     """ Posts data to item-api
         Called by controller. """
     URL = os.environ['ASSMNT__ITEM_API_URL']
@@ -493,19 +493,20 @@ def ingestItem( validity_result_list, log_identifier ):
                 filepath = entry[u'normalized_cell_data']
             else:
                 params[ entry[u'parameter_label'] ] = entry[u'normalized_cell_data']
-        log.debug( u'%s -- params, `%s`' % (log_identifier, pprint.pformat(params)) )
         ## post
         files = { 'actual_file': open(filepath, 'rb') }
-        r = requests.post( URL, data=params, files=files, verify=False )
-        log.debug( u'%s -- r.status_code, `%s`' % (log_identifier, r.status_code) )
-        log.debug( u'%s -- r.text, `%s`' % (log_identifier, r.text) )
-        ## return
-        result_dct = r.json()
-        if result_dct['post_result'] == u'SUCCESS':
-            return_dict = { u'status': u'success', u'post_json_dict': result_dct }
+        r = requests.post( URL, data=params, files=files, verify=True )
+        if r.ok:
+            result_dct = r.json()
+            if result_dct['post_result'] == u'SUCCESS':
+                return_dict = { u'status': u'success', u'post_json_dict': result_dct }
+            else:
+                return_dict = { u'status': 'FAILURE', u'message': u'ingestion problem; error logged' }
         else:
-            return_dict = { u'status': 'FAILURE', u'message': u'ingestion problem; error logged' }
+            raise Exception('error posting to BDR: %s - %s' % (r.status_code, r.content))
     except Exception as e:
-        log.error( u'%s -- Exception on ingest, `%s`' % (log_identifier, unicode(repr(e))) )
-        return_dict = { u'status': u'FAILURE', u'message': u'ingest failed; error logged' }
+        import traceback
+        msg = traceback.format_exc()
+        log.error(u'Exception on ingest: `%s`' % msg.decode('utf8'))
+        return_dict = {u'status': u'FAILURE', u'message': u'ingest failed; error logged'}
     return return_dict
