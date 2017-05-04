@@ -145,29 +145,33 @@ class Validator( object ):
 
         # end validateAdditionalRights()
 
-    def validateBy( self, cell_data ):
-          '''
-          - Purpose: a) validate 'by' data; b) create a postable string for the item-api.
-          - Called by: controller.py
-          - TODO: make more robust by stripping unnecessary whitespace.
-          '''
-          try:
+    def validateBy(self, cell_data):
+        '''
+        - Purpose: a) validate 'by' data; b) create a postable string for the item-api.
+        - Called by: controller.py
+        - TODO: make more robust by stripping unnecessary whitespace.
+        '''
+        try:
             # if filled out, ensure both name and role
-            if len( cell_data ) > 0:
-              by_list = cell_data.split( '#' )
-              if not ( len(by_list[0]) > 0 and len(by_list[1]) > 0 ):
-                return_dict = { 'status': 'FAILURE', 'message': 'problem with "by" entry' }
-              else:
-                return_dict = { 'status': 'valid', 'normalized_cell_data': cell_data, 'parameter_label': 'by' }
+            cell_data = cell_data.strip()
+            if len(cell_data) > 0:
+                if u'#' in cell_data:
+                    by_list = cell_data.split(u'#')
+                    if not (len(by_list[0]) > 0 and len(by_list[1]) > 0):
+                        return_dict = {'status': 'FAILURE', 'message': 'problem with "by" entry'}
+                    else:
+                        return_dict = {'status': 'valid', 'normalized_cell_data': cell_data, 'parameter_label': 'by'}
+                #if there's no role already specified, add a 'creator' role (name of column is "Creator")
+                else:
+                    cell_data = u'%s#creator' % cell_data
+                    return_dict = {u'status': u'valid', u'normalized_cell_data': cell_data, u'parameter_label': u'by'}
             else:
-              return_dict = { 'status': 'valid-empty', 'normalized_cell_data': '', 'parameter_label': 'by' }
-            log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
+                return_dict = {'status': 'valid-empty', 'normalized_cell_data': '', 'parameter_label': 'by'}
+            log.debug(u'return_dict, `%s`' % return_dict)
             return return_dict
-          except Exception, e:
-            log.error( u'%s -- exception, `%s`' % (self.log_identifier, unicode(repr(e))) )
-            return { 'status': 'FAILURE', 'message': 'problem with "by" entry' }
-
-          # end validateBy()
+        except Exception as e:
+            log.error(u'exception, `%s`' % unicode(repr(e)))
+            return {'status': 'FAILURE', 'message': 'problem with "by" entry'}
 
     def validateCreateDate( self, cell_data ):
           '''
