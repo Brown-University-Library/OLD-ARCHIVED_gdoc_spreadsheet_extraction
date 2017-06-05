@@ -258,8 +258,8 @@ class Validator( object ):
           - TODO: add test for multiple folders / make more robust by stripping unnecessary white-space
           '''
           try:
-            log.debug( u'%s -- cell_data, `%s`' % (self.log_identifier, cell_data) )
-            log.debug( u'%s -- spreadsheet_folder_api_identity, `%s`' % (self.log_identifier, self.PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY) )
+            log.debug(u'cell_data, `%s`' % cell_data)
+            log.debug(u'spreadsheet_folder_api_identity, `%s`' % self.PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY)
 
             return_dict = 'init'
             # see if the there's folder info
@@ -287,17 +287,11 @@ class Validator( object ):
                 folder_parts = cleaned_entry.split( '[' )
                 folder_name = folder_parts[0]
                 folder_id = folder_parts[1][0:-1]
-                # folder_api_full_url = '%s%s/?identities=%s' % (self.FOLDER_API_URL, folder_id, json.dumps([self.PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY]))
-                # log.debug( u'%s -- folder_api_full_url, `%s`' % (self.log_identifier, folder_api_full_url) )
-                # r = requests.get(folder_api_full_url, verify=False)
                 folder_api_url_root = u'%s%s/' % ( self.FOLDER_API_URL, folder_id )
-                log.debug( u'%s -- folder_api_url_root, `%s`' % (self.log_identifier, folder_api_url_root) )
                 params = { 'identities': json.dumps([self.PERMITTED_FOLDER_API_ADD_ITEMS_IDENTITY]) }
-                r = requests.get( folder_api_url_root, params, verify=False )
-                log.debug( u'%s -- requests url, `%s`' % (self.log_identifier, r.url) )
+                r = requests.get(folder_api_url_root, params)
                 if not r.ok:  # forbidden or not found
-                  log.debug( u'%s -- error from collection api, `%s - %s`' % (self.log_identifier, r.status_code, r.text) )
-                  # updateLog(message=u'uc.validateFolders() error from collection api: %s - %s' % (r.status_code, r.text))
+                  log.error( u'error from collection api, `%s - %s`' % (r.status_code, r.text) )
                   return_dict =  {'status': 'FAILURE', 'message': u'folder not found'}
                   break
               # folder-id found, confirm name is correct
@@ -318,11 +312,10 @@ class Validator( object ):
             if return_dict == 'init':
               normalized_cell_string = normalized_cell_string[1:]  # to get rid of initial '+'
               return_dict = { 'status': 'valid', 'normalized_cell_data': normalized_cell_string, 'parameter_label': 'folders' }
-            log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
-            # updateLog( message=u'validateFolders() return_dict is: %s' % return_dict, identifier=identifier )
+            log.debug( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
             return return_dict
           except Exception as e:
-            log.error( u'%s -- exception, `%s`' % (self.log_identifier, unicode(repr(e))) )
+            log.error(u'exception, `%s`' % unicode(repr(e)))
             return_dict =  { 'status': 'FAILURE', 'message': 'problem with "folders" entry' }
             return return_dict
           # end validateFolders()
