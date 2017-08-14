@@ -395,9 +395,7 @@ class Validator( object ):
           else:
             return_dict = { 'status': 'valid' }
           log.info( u'%s -- return_dict, `%s`' % (self.log_identifier, return_dict) )
-          # return
           return return_dict
-          # end def runOverallValidity()
 
     # end class Validator
 
@@ -475,24 +473,42 @@ class SheetGrabber( object ):
 
 def ingestItem(validity_result_list):
     """ Posts data to item-api
-        Called by controller. """
+        Called by controller.
+        validity_result_list = [
+            vresult_additional_rights, vresult_by,
+            vresult_create_date, vresult_description,
+            vresult_file_path, vresult_folders,
+            vresult_keywords, vresult_title
+        ]
+        each vresult*: {'parameter_label': '...', 'normalized_cell_data': '...'}
+        """
     URL = os.environ['ASSMNT__ITEM_API_URL']
     IDENTITY = os.environ['ASSMNT__ITEM_API_IDENTITY']
     KEY = os.environ['ASSMNT__ITEM_API_KEY']
+    OWNER_IDENTITY = os.environ['ASSMNT__OWNER_IDENTITY']
     try:
         ## params
         params = {}
         params[u'identity'] = IDENTITY
         params[u'authorization_code'] = KEY
         filepath = u''
+        mods_parameters = {}
         for entry in validity_result_list:
             if entry[u'parameter_label'] == u'file_path':
                 filepath = entry[u'normalized_cell_data']
+            elif entry['parameter_label'] == 'additional_rights':
+                params['rights'] = json.dumps({'parameters': {'owner_id': OWNER_IDENTITY, 'additional_rights': entry['normalized_cell_data']}})
+            elif entry['parameter_label'] == 'folders':
+                params['ir'] = json.dumps({'parameters': {'folders': entry['normalized_cell_data']}})
             else:
-                params[ entry[u'parameter_label'] ] = entry[u'normalized_cell_data']
+                mods_parameters[ entry[u'parameter_label'] ] = entry[u'normalized_cell_data']
+        params['mods'] = json.dumps({'parameters': mods_parameters})
         ## post
-        files = { 'actual_file': open(filepath, 'rb') }
-        r = requests.post( URL, data=params, files=files, verify=True )
+        with open(filepath, 'rb') as f:
+            file_name = os.path.basename(f.name)
+            params['content_streams'] = json.dumps([{'file_name': file_name}])
+            files = { file_name: f }
+            r = requests.post( URL, data=params, files=files, verify=True )
         if r.ok:
             result_dct = r.json()
             if result_dct['post_result'] == u'SUCCESS':
